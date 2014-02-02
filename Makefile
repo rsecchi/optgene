@@ -9,5 +9,5 @@ $(OUT): $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) -o $@
 
 .c.o:
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
