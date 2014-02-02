@@ -1,24 +1,47 @@
 #include <stdio.h>
-#include <stdint.h>
+#include <stdlib.h>
 
-struct symbol
+int count;
+int* tmpl;
+
+void parse(FILE* fp)
 {
-	uint32_t sym;
-	uint32_t bits;
-	uint32_t offs;
-};
+int rc, offs, i;
+char c;
 
+	offs = 0;
 
-int parse(FILE* fp)
-{
-int rc;
+	/* count the tags */
+	while( (rc=fgetc(fp)) > 0 ){
+		c = (char)rc;
+		if (c=='%') { 
+			rc = fgetc(fp);
+			if ( rc>48 && rc<=56 )
+				// found a tag
+				count++;
+		}
+	}
+	rewind(fp);
 
-	while(rc=fgetc(fp)) {
-		printf("%c",(char)rc);
+	if (count==0)
+		return;
+
+	/* build the template */
+	tmpl = malloc(count*sizeof(int));
+	
+	i = 0;
+	while( (rc=fgetc(fp)) > 0 ){
+		c = (char)rc;
+		if (c=='%') { 
+			rc = fgetc(fp);
+			if ( rc>48 && rc<=56 ) {
+				// found a tag
+				tmpl[i] = rc-48;
+				i++;
+			}
+		}
 	}
 
-
-	return 0;
 }
 
 
