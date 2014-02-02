@@ -1,8 +1,7 @@
 #ifndef parse_h
 #define parse_h
 
-extern int count;
-extern int* tmpl;
+extern int size;
 
 int parse(FILE*);
 
