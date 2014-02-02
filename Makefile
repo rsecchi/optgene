@@ -1,7 +1,7 @@
 
 OUT=opt
 
-SRC= parse.c main.c
+SRC= parse.c main.c opt.c
 OBJ= $(SRC:.c=.o)
 
 
@@ -10,4 +10,7 @@ $(OUT): $(OBJ)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm *.o
 
