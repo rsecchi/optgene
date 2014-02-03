@@ -43,12 +43,31 @@ char c;
 			}
 		}
 	}
+	rewind(fp);
 
 	return count;
 }
 
-
-void maketest(char*s, FILE*fp) 
+void makeinst(char*s, FILE*fp) 
 {
-	
+int i = 0, rc;
+char c;
+
+	/* count the tags */
+	while( (rc=fgetc(fp)) > 0 ){
+		c = (char)rc;
+		if (c=='%') { 
+			rc = fgetc(fp);
+			if ( rc>48 && rc<=56 ) {
+				// found a tag
+				printf("%u", s[i]&0xFF);
+				i++;
+			} else {
+				printf("%%");
+				printf("%c",(char)rc);
+			}
+		} else {
+			printf("%c",c);
+		}
+	}
 }
