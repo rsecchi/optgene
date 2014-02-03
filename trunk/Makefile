@@ -1,7 +1,7 @@
 
 OUT=opt
 
-SRC= parse.c main.c opt.c
+SRC= parse.c main.c opt.c cmdline.c
 OBJ= $(SRC:.c=.o)
 
 

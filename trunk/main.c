@@ -4,6 +4,7 @@
 
 #include "opt.h"
 #include "parse.h"
+#include "cmdline.h"
 
 FILE* ptemp;
 
@@ -12,6 +13,10 @@ int main(int argc, char* argv[])
 {
 int i;
 struct timeval randtime;
+
+
+	if (cmdline(argc, argv))
+		exit(1);
 
 	gettimeofday(&randtime, NULL);
 	srand(randtime.tv_usec);
