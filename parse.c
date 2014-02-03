@@ -10,6 +10,7 @@ int rc, i;
 int count;
 char c;
 
+	count = 0;
 	/* count the tags */
 	while( (rc=fgetc(fp)) > 0 ){
 		c = (char)rc;
@@ -48,26 +49,35 @@ char c;
 	return count;
 }
 
-void makeinst(char*s, FILE*fp) 
+char* makeinst(char*s, FILE*fp) 
 {
-int i = 0, rc;
+int i = 0, rc, offs=0;
 char c;
+char* out;
+	
+	/* create string */
+	out = malloc(size+genesize*3);
 
 	/* count the tags */
 	while( (rc=fgetc(fp)) > 0 ){
 		c = (char)rc;
 		if (c=='%') { 
 			rc = fgetc(fp);
+			c = (char)rc;
 			if ( rc>48 && rc<=56 ) {
 				// found a tag
-				printf("%u", s[i]&0xFF);
+				offs += sprintf(out+offs, "%u", s[i]&0xFF);
 				i++;
 			} else {
-				printf("%%");
-				printf("%c",(char)rc);
+				offs += sprintf(out+offs, "%%");
+				if (c != '%')
+					offs += sprintf(out+offs, "%c", (char)rc);
 			}
 		} else {
-			printf("%c",c);
+			offs += sprintf(out+offs, "%c", c);
 		}
 	}
+	printf("%s\n", out);
+
+	return out;	
 }
