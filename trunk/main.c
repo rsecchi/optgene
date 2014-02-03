@@ -21,7 +21,7 @@ struct timeval randtime;
 	gettimeofday(&randtime, NULL);
 	srand(randtime.tv_usec);
 
-	ptemp = fopen("test.temp","r");
+	ptemp = fopen(tfile,"r");
 
 	genesize = parse(ptemp);
 	

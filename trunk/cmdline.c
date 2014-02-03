@@ -1,8 +1,13 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-static void help()
+char* tfile;
+const char default_tfile[] = "input.opt";
+
+static void help(char* exename)
 {
-	fprintf(stderr, "opt <script> <input_template>\n"); 
+	fprintf(stderr, "%s: <script> <input_template>\n", exename); 
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, "<script>          takes an instance of input using\n"); 
 	fprintf(stderr, "                  <input_template> and produces a\n"); 
@@ -15,12 +20,27 @@ static void help()
 
 }
 
-
 int cmdline(int argc, char* argv[])
 {
+	if (argc<2) {
+		help(argv[0]);
+		exit(1);
+	}
 
-	if (argc<3)
-		help();
+	if (access(argv[1], X_OK)) {
+		fprintf(stderr, "%s: %s not found or not executable\n", argv[0], argv[1]);
+		exit(1);
+	}
+	
+	if (argc==1)
+		return 0;
+
+	if (access(argv[2], X_OK)) {
+		tfile = default_tfile;
+		return 0;
+	}
+	
+	tfile = argv[2];
 
 	return 1;
 }
