@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 char* tfile;
-const char default_tfile[] = "input.opt";
+char default_tfile[] = "input.opt";
 
 static void help(char* exename)
 {
@@ -20,7 +20,7 @@ static void help(char* exename)
 
 }
 
-int cmdline(int argc, char* argv[])
+void cmdline(int argc, char* argv[])
 {
 	if (argc<2) {
 		help(argv[0]);
@@ -28,20 +28,28 @@ int cmdline(int argc, char* argv[])
 	}
 
 	if (access(argv[1], X_OK)) {
-		fprintf(stderr, "%s: %s not found or not executable\n", argv[0], argv[1]);
+		fprintf(stderr, "%s: %s not found or executable\n", 
+			argv[0], argv[1]);
 		exit(1);
 	}
 	
-	if (argc==1)
-		return 0;
-
-	if (access(argv[2], X_OK)) {
+	if (argc==2) {
+		if (access(default_tfile, R_OK)) {
+			fprintf(stderr, "%s: %s not found or readable\n", 
+				argv[0], default_tfile);
+			exit(1);
+		}
 		tfile = default_tfile;
-		return 0;
+		return;
+	}
+
+	if (access(argv[2], R_OK)) {
+		fprintf(stderr, "%s: %s not found or readable\n", 
+			argv[0], argv[2]);
+		exit(1);
 	}
 	
 	tfile = argv[2];
 
-	return 1;
 }
 

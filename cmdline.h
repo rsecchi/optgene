@@ -3,6 +3,6 @@
 
 extern char* tfile;
 
-int cmdline(int argc, char* argv[]);
+void cmdline(int argc, char* argv[]);
 
 #endif

@@ -15,8 +15,8 @@ int i;
 struct timeval randtime;
 
 
-	if (cmdline(argc, argv))
-		exit(1);
+	cmdline(argc, argv);
+	
 
 	gettimeofday(&randtime, NULL);
 	srand(randtime.tv_usec);
