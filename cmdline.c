@@ -7,15 +7,15 @@ char default_tfile[] = "input.opt";
 
 static void help(char* exename)
 {
-	fprintf(stderr, "%s: <script> <input_template>\n", exename); 
+	fprintf(stderr, "%s: <executable> <template>\n", exename); 
 	fprintf(stderr, "\n"); 
-	fprintf(stderr, "<script>          takes an instance of input using\n"); 
-	fprintf(stderr, "                  <input_template> and produces a\n"); 
-	fprintf(stderr, "                  numeric evaluation of the instance\n"); 
+	fprintf(stderr, "<script>    takes a configuration file generate using\n"); 
+	fprintf(stderr, "            <template> as first argument and evaluates it\n"); 
 	fprintf(stderr, "\n"); 
-	fprintf(stderr, "<input_template>  the template file to be evaluated\n"); 
-	fprintf(stderr, "                  %%1, %%2, ..., %%8: are parameter to\n"); 
-	fprintf(stderr, "                  evaluate with 1, 2, to 8 bits\n"); 
+	fprintf(stderr, "<template>  a template for the configuration to be evaluated\n"); 
+	fprintf(stderr, "            %%1, %%2, ..., %%8: are used in <template> to indicate\n"); 
+	fprintf(stderr, "            parameters with 1, 2, .., 8 bits respectively. If \n"); 
+	fprintf(stderr, "            <template> is not specified the file 'output.opt' is used.\n"); 
 	
 
 }
