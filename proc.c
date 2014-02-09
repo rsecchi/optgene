@@ -2,32 +2,38 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int eval(char* s)
-{
-	char buf[30];
-	int com[2];
-	int size;
+#include "parse.h"
+#include "opt.h"
+#include "cmdline.h"
 
-	pipe(com);
-	if (fork()) {
+int eval(char *s)
+{
+	char buf[256];
+	char *test;
+	int com[2];
+	int rd;
+
+	if (pipe(com)) {
+		fprintf(stderr, "cannot open pipe for reading\n");
+		exit(1);
+	}
+
+	test = malloc(size + genesize * 3);
+	if (!vfork()) {
 		close(com[0]);
-		write(com[1], s, 5);
+		makeinst(s, script, test);
+
+		dup2(com[1], STDOUT_FILENO);
+		execvp(test, &test);
 		exit(1);
 	}
 
 	close(com[1]);
-	while(size = read(com[0], buf, 30)){
-		buf[size] = '\0';
-		printf("%s",buf);
-	}
+	while ((rd = read(com[0], buf, 255)))
+		buf[rd] = '\0';
+
+	free(test);
+
+	return atoi(buf);
 
 }
-
-int main()
-{
-	char buffer[30];
-
-	eval("Raffaello");
-
-}
-

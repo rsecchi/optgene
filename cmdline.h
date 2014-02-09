@@ -1,8 +1,8 @@
 #ifndef cmdline_h
 #define cmdline_h
 
-extern char* tfile;
+extern FILE *script;
 
-void cmdline(int argc, char* argv[]);
+void cmdline(int argc, char *argv[]);
 
 #endif
