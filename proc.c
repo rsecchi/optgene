@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "parse.h"
 #include "opt.h"
@@ -9,7 +10,9 @@
 int eval(char *s)
 {
 	char buf[256];
-	char *test;
+	char *testtext;
+	FILE *testfile;
+	char *testname;
 	int com[2];
 	int rd;
 
@@ -18,13 +21,21 @@ int eval(char *s)
 		exit(1);
 	}
 
-	test = malloc(size + genesize * 3);
+	/* creates a temporary file */
+	testname = tempnam(getcwd(buf, 256), NULL);
+	printf("%s\n", testname);
+	testtext = malloc(size + genesize * 3);
+	testfile = fopen(testname, "w");
+	makeinst(s, script, testtext);
+	fprintf(testfile, "%s", testtext);
+	chmod(testname, S_IXUSR);
+	fclose(testfile);
+
 	if (!vfork()) {
 		close(com[0]);
-		makeinst(s, script, test);
 
 		dup2(com[1], STDOUT_FILENO);
-		execvp(test, &test);
+		if (system(testname));
 		exit(1);
 	}
 
@@ -32,7 +43,9 @@ int eval(char *s)
 	while ((rd = read(com[0], buf, 255)))
 		buf[rd] = '\0';
 
-	free(test);
+	remove(testname);
+	free(testtext);
+	free(testname);
 
 	return atoi(buf);
 
