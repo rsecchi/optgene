@@ -49,15 +49,12 @@ char c;
 	return count;
 }
 
-char* makeinst(char*s, FILE*fp) 
+void makeinst(char*s, FILE*fp, char* out) 
 {
 int i = 0, rc, offs=0;
 char c;
 char* out;
 	
-	/* create string */
-	out = malloc(size+genesize*3);
-
 	/* count the tags */
 	while( (rc=fgetc(fp)) > 0 ){
 		c = (char)rc;
@@ -79,7 +76,7 @@ char* out;
 	}
 	printf("%s\n", out);
 
-	return out;	
 }
+
 
 
