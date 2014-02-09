@@ -8,7 +8,8 @@ extern int *tmpl;
 extern char *pool[POP_SIZE];
 
 char *gene[POP_SIZE];
-
-void randomgene(char *);
+char *randomgene(void);
+void opt_init();
+void opt_run();
 
 #endif

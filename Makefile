@@ -14,7 +14,7 @@ $(OUT): $(OBJ)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm *.o
+	rm *.o *~
 
 indent:
 	indent -kr -i8 *.c *.h
