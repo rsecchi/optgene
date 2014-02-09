@@ -23,7 +23,6 @@ int eval(char *s)
 
 	/* creates a temporary file */
 	testname = tempnam(getcwd(buf, 256), NULL);
-	printf("%s\n", testname);
 	testtext = malloc(size + genesize * 3);
 	testfile = fopen(testname, "w");
 	makeinst(s, script, testtext);

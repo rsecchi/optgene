@@ -53,6 +53,7 @@ void makeinst(char *s, FILE * fp, char *out)
 {
 	int i = 0, rc, offs = 0;
 	char c;
+	rewind(fp);
 
 	/* count the tags */
 	while ((rc = fgetc(fp)) > 0) {
@@ -76,6 +77,5 @@ void makeinst(char *s, FILE * fp, char *out)
 			offs += sprintf(out + offs, "%c", c);
 		}
 	}
-	printf("%s\n", out);
 
 }
