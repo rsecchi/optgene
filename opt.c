@@ -31,7 +31,7 @@ char *randomgene()
 void mutategene(char *s)
 {
         int a = random() % genesize;
-        s[i] = (char) ((1 << (tmpl[i])) - 1) & random();
+        s[a] = (char) ((1 << (tmpl[a])) - 1) & random();
 }
 
 
@@ -44,7 +44,7 @@ char* crossover(char* s1, char* s2)
 
         out = malloc(genesize);
 
-        for(i=0; i<optgene; i++) {
+        for(i=0; i<genesize; i++) {
                 if (i<a)
                         out[i] = s1[i];
                 else
