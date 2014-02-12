@@ -7,6 +7,8 @@
 #include "opt.h"
 #include "cmdline.h"
 
+int testno;
+
 int eval(char *s)
 {
 	char buf[256];
