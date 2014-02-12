@@ -78,4 +78,5 @@ void makeinst(char *s, FILE * fp, char *out)
 		}
 	}
 
+
 }

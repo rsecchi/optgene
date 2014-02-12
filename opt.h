@@ -1,7 +1,7 @@
 #ifndef opt_h
 #define opt_h
 
-#define POP_SIZE 3
+#define POP_SIZE 100
 
 extern int genesize;
 extern int *tmpl;
