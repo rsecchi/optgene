@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <string.h>
+#include <errno.h>
+
+
 
 #include "parse.h"
 #include "opt.h"
@@ -25,8 +29,17 @@ int eval(char *s)
 
 	/* creates a temporary file */
 	testname = tempnam(getcwd(buf, 256), NULL);
-	testtext = malloc(size + genesize * 3);
+	testtext = malloc(size + genesize * 3 + 1);
+	if (!testtext) {
+		fprintf(stderr, "malloc failed\n");
+		exit(1);
+	}
 	testfile = fopen(testname, "w");
+	if (!testfile) {
+		perror(NULL);
+		exit(1);
+	}
+	
 	makeinst(s, script, testtext);
 	fprintf(testfile, "%s", testtext);
 	chmod(testname, S_IXUSR);
@@ -44,10 +57,13 @@ int eval(char *s)
 	while ((rd = read(com[0], buf, 255)))
 		buf[rd] = '\0';
 
-	remove(testname);
+	if (remove(testname))
+		printf("could not remove it\n");
 	free(testtext);
 	free(testname);
+	close(com[0]);
 
 	return atoi(buf);
 
 }
+
