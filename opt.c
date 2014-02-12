@@ -69,20 +69,27 @@ void opt_run()
 	int best;
 	int generation = 0;
 	int randt = RAND_MAX/10;
+	char *besttext;
+	FILE *pbest;
 
 	genesize = parse(script);
-	//for (i = 0; i < POP_SIZE; i++)
-	//      printf("%d) %d\n", i, eval(pool[i]));
+	pbest = fopen("opt.best","w");
+	best = 0;
 
 	while (1) {
 		generation++;
 
 		/* Rate the population */
-		best = 0;
 		for (i = 0; i < POP_SIZE; i++) {
 			rate[i] = eval(pool[i]);
-			if (best < rate[i])
+			if (best < rate[i]) {
+				fclose(pbest);
+				pbest = fopen("opt.best","w");
+				besttext = malloc(size + genesize*3+1);
+				makeinst(pool[i], script, besttext);
+				fprintf(pbest, "%s", besttext);
 				best = rate[i];
+			}
 		}
 
 		printf("%d) best rate: %d\n", generation, best);

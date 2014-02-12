@@ -77,6 +77,6 @@ void makeinst(char *s, FILE * fp, char *out)
 			offs += sprintf(out + offs, "%c", c);
 		}
 	}
-
+	out[offs] = '\0';
 
 }
