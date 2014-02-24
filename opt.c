@@ -9,7 +9,7 @@
 int genesize;
 char *pool[POP_SIZE];
 char *tpool[POP_SIZE];
-int rate[POP_SIZE];
+double rate[POP_SIZE];
 int *tmpl;
 
 
@@ -74,14 +74,14 @@ void opt_init()
 void opt_run()
 {
 	int i, g1, g2, h1, h2;
-	int best;
+	double best;
 	int generation = 0;
-	int randt = RAND_MAX / 10;
+	int randt = RAND_MAX / 20;
 	FILE *pbest;
 
 	genesize = parse(script);
 	pbest = fopen("opt.best", "w");
-	best = INT_MIN;
+	best = -1000;
 
 	while (1) {
 		generation++;
@@ -96,7 +96,7 @@ void opt_run()
 			}
 		}
 
-		printf("%d) best rate: %d\n", generation, best);
+		printf("%d) best rate: %lf\n", generation, best);
 
 		/* Tournament selection */
 		for (i = 0; i < POP_SIZE; i++) {
@@ -113,9 +113,9 @@ void opt_run()
 			tpool[i] = crossover(pool[h1], pool[h2]);
 
 			if (random() < randt)
-				mutategene(tpool[i]);
+				while(random() & 0x01)
+					mutategene(tpool[i]);
 		}
-
 
 		/* Copy population */
 		for (i = 0; i < POP_SIZE; i++) {

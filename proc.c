@@ -15,7 +15,7 @@ int testno;
 FILE *testfile;
 char *testname;
 
-int eval(char *s)
+double eval(char *s)
 {
 	char buf[256];
 	int com[2];
@@ -55,6 +55,6 @@ int eval(char *s)
 	free(testname);
 	close(com[0]);
 
-	return atoi(buf);
+	return atof(buf);
 
 }
