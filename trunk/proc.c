@@ -4,8 +4,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
-
-
+#include <sys/wait.h>
 
 #include "parse.h"
 #include "opt.h"
@@ -17,6 +16,7 @@ char *testname;
 
 double eval(char *s)
 {
+	int status;
 	char buf[256];
 	int com[2];
 	int rd;
@@ -55,6 +55,7 @@ double eval(char *s)
 	free(testname);
 	close(com[0]);
 
+	wait(&status);
 	return atof(buf);
 
 }
