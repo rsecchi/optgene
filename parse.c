@@ -49,9 +49,9 @@ int parse(FILE * fp)
 	return count;
 }
 
-void makeinst(char *s, FILE * fp, char *out)
+void makeinst(char *s, FILE * fp, FILE *out)
 {
-	int i = 0, rc, offs = 0;
+	int rc, i=0;
 	char c;
 	rewind(fp);
 
@@ -63,20 +63,15 @@ void makeinst(char *s, FILE * fp, char *out)
 			c = (char) rc;
 			if (rc > 48 && rc <= 56) {
 				// found a tag
-				offs +=
-				    sprintf(out + offs, "%u", s[i] & 0xFF);
+				fprintf(out, "%u", s[i] & 0xFF);
 				i++;
 			} else {
-				offs += sprintf(out + offs, "%%");
+				fprintf(out, "%%");
 				if (c != '%')
-					offs +=
-					    sprintf(out + offs, "%c",
-						    (char) rc);
+					fprintf(out, "%c", (char) rc);
 			}
-		} else {
-			offs += sprintf(out + offs, "%c", c);
-		}
+		} else
+			fprintf(out, "%c", c);
 	}
-	out[offs] = '\0';
 
 }

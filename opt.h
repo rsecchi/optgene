@@ -1,5 +1,6 @@
 #ifndef opt_h
 #define opt_h
+#include <signal.h>
 
 #define POP_SIZE 100
 
@@ -11,5 +12,6 @@ char *gene[POP_SIZE];
 char *randomgene(void);
 void opt_init();
 void opt_run();
+void end_opt(int);
 
 #endif

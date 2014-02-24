@@ -5,7 +5,7 @@
 extern int size;
 
 int parse(FILE *);
-void makeinst(char *, FILE *, char *);
+void makeinst(char *, FILE *, FILE *);
 
 
 #endif
