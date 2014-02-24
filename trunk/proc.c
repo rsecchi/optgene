@@ -12,13 +12,12 @@
 #include "cmdline.h"
 
 int testno;
+FILE *testfile;
+char *testname;
 
 int eval(char *s)
 {
 	char buf[256];
-	char *testtext;
-	FILE *testfile;
-	char *testname;
 	int com[2];
 	int rd;
 
@@ -29,19 +28,13 @@ int eval(char *s)
 
 	/* creates a temporary file */
 	testname = tempnam(getcwd(buf, 256), NULL);
-	testtext = malloc(size + genesize * 3 + 1);
-	if (!testtext) {
-		fprintf(stderr, "malloc failed\n");
-		exit(1);
-	}
 	testfile = fopen(testname, "w");
 	if (!testfile) {
 		perror(NULL);
 		exit(1);
 	}
-	
-	makeinst(s, script, testtext);
-	fprintf(testfile, "%s", testtext);
+
+	makeinst(s, script, testfile);
 	chmod(testname, S_IXUSR);
 	fclose(testfile);
 
@@ -59,11 +52,9 @@ int eval(char *s)
 
 	if (remove(testname))
 		printf("could not remove it\n");
-	free(testtext);
 	free(testname);
 	close(com[0]);
 
 	return atoi(buf);
 
 }
-

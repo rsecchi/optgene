@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <limits.h>
 #include "opt.h"
 #include "parse.h"
 #include "cmdline.h"
@@ -52,6 +53,13 @@ char *crossover(char *s1, char *s2)
 
 }
 
+/* opt ends */
+void end_opt(int s)
+{
+	printf("bye bye\n");
+	exit(0);
+}
+
 /* opt optimisation */
 void opt_init()
 {
@@ -68,13 +76,12 @@ void opt_run()
 	int i, g1, g2, h1, h2;
 	int best;
 	int generation = 0;
-	int randt = RAND_MAX/10;
-	char *besttext;
+	int randt = RAND_MAX / 10;
 	FILE *pbest;
 
 	genesize = parse(script);
-	pbest = fopen("opt.best","w");
-	best = 0;
+	pbest = fopen("opt.best", "w");
+	best = INT_MIN;
 
 	while (1) {
 		generation++;
@@ -83,11 +90,8 @@ void opt_run()
 		for (i = 0; i < POP_SIZE; i++) {
 			rate[i] = eval(pool[i]);
 			if (best < rate[i]) {
-				fclose(pbest);
-				pbest = fopen("opt.best","w");
-				besttext = malloc(size + genesize*3+1);
-				makeinst(pool[i], script, besttext);
-				fprintf(pbest, "%s", besttext);
+				pbest = freopen("opt.best", "w", pbest);
+				makeinst(pool[i], script, pbest);
 				best = rate[i];
 			}
 		}
