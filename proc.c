@@ -38,7 +38,7 @@ double eval(char *s)
 	chmod(testname, S_IXUSR);
 	fclose(testfile);
 
-	if (!vfork()) {
+	if (!fork()) {
 		close(com[0]);
 
 		dup2(com[1], STDOUT_FILENO);
