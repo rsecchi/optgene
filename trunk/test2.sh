@@ -22,7 +22,7 @@ q3 %3 %3 %3 mod1
 q4 %3 %3 %3 mod1
 .model mod1 npn bf=50 
 .dc vin 0 5 0.01
-.print dc v(2,3)
+.print dc v(3)
 .end"
 
 ) | awk '
@@ -34,11 +34,15 @@ q4 %3 %3 %3 mod1
 	a==1
 ' > $TMP
 
-if [ ! -s $TMP ]; then
+if [ $? = "1" ]; then
 	echo -2000000000
 	exit
 fi
 
+if [ ! -s $TMP ]; then
+	echo -2000000000
+	exit
+fi
 
 # Evaluating fitness
 echo "	

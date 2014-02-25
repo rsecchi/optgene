@@ -93,10 +93,9 @@ void opt_run()
 				pbest = freopen("opt.best", "w", pbest);
 				makeinst(pool[i], script, pbest);
 				best = rate[i];
+				printf("%d) best rate: %lf\n", generation, best);
 			}
 		}
-
-		printf("%d) best rate: %lf\n", generation, best);
 
 		/* Tournament selection */
 		for (i = 0; i < POP_SIZE; i++) {
