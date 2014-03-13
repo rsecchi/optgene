@@ -1,7 +1,7 @@
 
 OUT=opt
 
-SRC= parse.c main.c opt.c cmdline.c proc.c
+SRC= parse.c main.c opt_bf.c cmdline.c proc.c
 OBJ= $(SRC:.c=.o)
 
 CFLAGS= -g -O2 -Wall

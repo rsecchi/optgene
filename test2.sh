@@ -20,6 +20,14 @@ q1 %3 %3 %3 mod1
 q2 %3 %3 %3 mod1
 q3 %3 %3 %3 mod1
 q4 %3 %3 %3 mod1
+q5 %3 %3 %3 mod1
+q6 %3 %3 %3 mod1
+q7 %3 %3 %3 mod1
+q8 %3 %3 %3 mod1
+q9 %3 %3 %3 mod1
+q10 %3 %3 %3 mod1
+q11 %3 %3 %3 mod1
+q12 %3 %3 %3 mod1
 .model mod1 npn bf=50 
 .dc vin 0 5 0.01
 .print dc v(3)
@@ -27,6 +35,7 @@ q4 %3 %3 %3 mod1
 
 ) | awk '
 	# Extracting Results
+	/nan/ {next}
 	/^\f/ {next}
 	/^--/ {next}
 	/^Index/ { a=1; next}
@@ -34,12 +43,12 @@ q4 %3 %3 %3 mod1
 	a==1
 ' > $TMP
 
-if [ $? = "1" ]; then
+if [ ! -s $TMP ]; then
 	echo -2000000000
 	exit
 fi
 
-if [ ! -s $TMP ]; then
+if [ $(cat $TMP | wc -l) != "501" ]; then
 	echo -2000000000
 	exit
 fi
