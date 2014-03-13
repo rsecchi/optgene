@@ -80,8 +80,7 @@ void opt_run()
 	FILE *pbest;
 
 	genesize = parse(script);
-	pbest = fopen("opt.best", "w");
-	best = -1000;
+	best = -3000;
 
 	while (1) {
 		generation++;
@@ -90,12 +89,15 @@ void opt_run()
 		for (i = 0; i < POP_SIZE; i++) {
 			rate[i] = eval(pool[i]);
 			if (best < rate[i]) {
-				pbest = freopen("opt.best", "w", pbest);
+				pbest = fopen("opt.best", "w");
 				makeinst(pool[i], script, pbest);
 				best = rate[i];
-				printf("%d) best rate: %lf\n", generation, best);
+				fclose(pbest);
+				printf("%lf\n", best);
 			}
 		}
+
+		printf("%d) best rate: %lf\n", generation, best);
 
 		/* Tournament selection */
 		for (i = 0; i < POP_SIZE; i++) {
@@ -112,7 +114,7 @@ void opt_run()
 			tpool[i] = crossover(pool[h1], pool[h2]);
 
 			if (random() < randt)
-				while(random() & 0x01)
+				while (random() & 0x01)
 					mutategene(tpool[i]);
 		}
 

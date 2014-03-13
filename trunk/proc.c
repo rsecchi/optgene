@@ -16,7 +16,7 @@ char *testname;
 
 double eval(char *s)
 {
-	int status;
+	int status = 0;
 	char buf[256];
 	int com[2];
 	int rd;
@@ -50,12 +50,14 @@ double eval(char *s)
 	while ((rd = read(com[0], buf, 255)))
 		buf[rd] = '\0';
 
+	wait(&status);
+
 	if (remove(testname))
 		printf("could not remove it\n");
+
 	free(testname);
 	close(com[0]);
 
-	wait(&status);
 	return atof(buf);
 
 }
