@@ -4,7 +4,7 @@ FREECADPATH='/usr/lib/freecad/lib'  # path to FreeCAD dll
 STLPATH='/var/www/stl/'
 
 
-import cgitb, sys, cgi, os
+import cgitb, sys, cgi, os, math
 sys.stdout.flush()
 newstdout = os.dup(1)
 devnull = os.open(os.devnull, os.O_WRONLY)
@@ -19,28 +19,27 @@ def out_error(errstr):
 
 sys.path.append(FREECADPATH)
 
-import FreeCAD, Mesh, Part, BuildRegularGeoms
+import FreeCAD 
+import Mesh, Part, BuildRegularGeoms
 import tempfile
 
 cgitb.enable()
-
-#print "Content-type: text/html\n"
-
 args = cgi.FieldStorage()
 
 
 # Look for "filename" among the arguments
-myfile="nofile"
+infile="nofile"
 for i in args.keys():
 	if ( i == "filename" ):
-		myfile=args[i].value
+		infile=args[i].value
 	#	filename = arguments[i].value
 
 
-myfile = STLPATH + myfile
+
+myfile = STLPATH + infile
 
 # Try to open myfile
-if (myfile == "nofile"):
+if (infile == "nofile"):
 	out_error("filename not provided")
 	sys.exit(1)
 else:
@@ -49,6 +48,8 @@ else:
 	except IOError:
 		out_error("Cannot open file")
 		sys.exit(1)
+
+
 
 # print "Opening %s" % (myfile)
 
@@ -63,10 +64,11 @@ if (mycode=="nocode" or mycode==""):
 	out_error("Code not provided")
 	sys.exit(1)
 
-print myfile
-tt = os.path.splitext(myfile)
-bname = tt[0] + '_' + mycode + tt[1]
-print bname
+
+# print myfile
+# tt = os.path.splitext(myfile)
+# bname = tt[0] + '_' + mycode + tt[1]
+# print bname
 
 #if 'filename' in args.keys():
 #	filename = args['filename'].value
@@ -82,10 +84,19 @@ d.addObject("Mesh::Feature", "mwork")
 d.mwork.Mesh = mesh1
 
 # Creating a cylinder
-cyl = BuildRegularGeoms.Cylinder(2.0, 10.0, True, 1.0, 50)
+cyl = BuildRegularGeoms.Cylinder(10.0, 2.0, True, 1.0, 50)
 cyl_mesh = Mesh.Mesh(cyl)
 d.addObject("Mesh::Feature", "mcyl")
 d.mcyl.Mesh = cyl_mesh
+
+
+#d.getObject("Union").Placement = 
+pos = FreeCAD.Vector(0.0,0.0,0.0)
+rot = App.Rotation(0,90,0)
+cen = FreeCAD.Vector(0.0,0.0,0.0)
+#pos = FreeCAD.Placement(p,r)
+d.getObject("mcyl").Placement = App.Placement(pos, rot, cen)
+#d.recompute()
 
 # Merge the two solids
 umesh = d.mwork.Mesh.unite(d.mcyl.Mesh)
@@ -94,20 +105,28 @@ d.Union.Mesh = umesh
 d.recompute()
 
 
-# Write on a file
+# Return the merge on stdout
 def output_file_and_exit():
+	fname = '"' + os.path.splitext(infile)[0] + '_' + mycode + '.stl"'
+	cd_header = 'Content-Disposition: inline; filename='+fname+'\n'
 	print('Content-type: application/sla')
-	print('Content-Disposition: inline; filename="work.stl"\n')
+	print(cd_header)
 	tmpfilename = tempfile.mktemp()
 	d.getObject("Union").Mesh.write(tmpfilename, "STL", "Union")
 	f = open(tmpfilename, 'r+b')
 	ff = f.read()
 	sys.stdout.write(ff)
 
+# Return the merge in a file
+def output_workfile():
+	d.getObject("Union").Mesh.write("workfile.stl", "STL", "Union")
+
+
+#output_workfile()
+
 #data = open('Tazzina.stl', 'rb').read()
 #sys.stdout.write(data)
 
-out_error("Operation Completed")
-print bname
-
+#out_error("Operation Completed")
+output_file_and_exit()
 
