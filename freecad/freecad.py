@@ -2,7 +2,7 @@
 
 FREECADPATH='/usr/lib/freecad/lib'  # path to FreeCAD dll
 STLPATH='/var/www/stl/'
-
+FONTFILE='/home/raffaello/Desktop/Ubuntu-B.ttf'
 
 import cgitb, sys, cgi, os, math
 sys.stdout.flush()
@@ -17,13 +17,30 @@ def out_error(errstr):
 	print "<p>Error: %s</p>" % (errstr)
 
 
+def code_to_text(textstr, doc, tmpf):
+	ss = Draft.makeShapeString(textstr, FONTFILE, 3, 0)
+	doc.addObject("Part::Extrusion", "Extrude")
+	doc.Extrude.Base = doc.ShapeString
+	doc.Extrude.Dir = (0, 0, 4)
+	doc.Extrude.Solid = (True)
+	doc.Extrude.TaperAngle = (0)
+	doc.recompute()
+	pos = FreeCAD.Vector(-10.0,-2.0,0.0)
+	rot = App.Rotation(0,0,0)
+	cen = FreeCAD.Vector(0.0,0.0,0.0)
+	#pos = FreeCAD.Placement(p,r)
+	d.getObject("Extrude").Placement = App.Placement(pos, rot, cen)
+	objs = []
+	objs.append(d.getObject("Extrude"))
+	Mesh.export(objs, tmpf)
+
 sys.path.append(FREECADPATH)
 
 import FreeCAD 
-import Mesh, Part, BuildRegularGeoms
+import Mesh, Part, BuildRegularGeoms, Draft
 import tempfile
 
-cgitb.enable()
+#cgitb.enable()
 args = cgi.FieldStorage()
 
 
@@ -48,8 +65,6 @@ else:
 	except IOError:
 		out_error("Cannot open file")
 		sys.exit(1)
-
-
 
 # print "Opening %s" % (myfile)
 
@@ -83,23 +98,38 @@ mesh1 = Mesh.Mesh(myfile)
 d.addObject("Mesh::Feature", "mwork")
 d.mwork.Mesh = mesh1
 
-# Creating a cylinder
-cyl = BuildRegularGeoms.Cylinder(10.0, 2.0, True, 1.0, 50)
-cyl_mesh = Mesh.Mesh(cyl)
-d.addObject("Mesh::Feature", "mcyl")
-d.mcyl.Mesh = cyl_mesh
+
+def create_disc():
+	# Creating a cylinder
+	cyl = BuildRegularGeoms.Cylinder(10.0, 2.0, True, 1.0, 50)
+	cyl_mesh = Mesh.Mesh(cyl)
+	d.addObject("Mesh::Feature", "mcyl")
+	d.mcyl.Mesh = cyl_mesh
+	#d.getObject("Union").Placement = 
+	pos = FreeCAD.Vector(0.0,0.0,0.0)
+	rot = App.Rotation(0,90,0)
+	cen = FreeCAD.Vector(0.0,0.0,0.0)
+	#pos = FreeCAD.Placement(p,r)
+	d.getObject("mcyl").Placement = App.Placement(pos, rot, cen)
+	#d.recompute()
 
 
-#d.getObject("Union").Placement = 
-pos = FreeCAD.Vector(0.0,0.0,0.0)
-rot = App.Rotation(0,90,0)
-cen = FreeCAD.Vector(0.0,0.0,0.0)
-#pos = FreeCAD.Placement(p,r)
-d.getObject("mcyl").Placement = App.Placement(pos, rot, cen)
-#d.recompute()
+#tf = tempfile.mktemp() + ".stl"
+
+tf = '/tmp/letters.stl'
+code_to_text(mycode, d, tf)
+
+
+def load_text(tf):
+	mtext = Mesh.Mesh(tf)
+	d.addObject("Mesh::Feature", "mtxt")
+	return mtext
+
+mtext = load_text(tf)
+#mtext = d.mcyl.Mesh
 
 # Merge the two solids
-umesh = d.mwork.Mesh.unite(d.mcyl.Mesh)
+umesh = d.mwork.Mesh.difference(mtext)
 d.addObject("Mesh::Feature", "Union")
 d.Union.Mesh = umesh
 d.recompute()
@@ -122,11 +152,11 @@ def output_workfile():
 	d.getObject("Union").Mesh.write("workfile.stl", "STL", "Union")
 
 
-#output_workfile()
+output_workfile()
 
 #data = open('Tazzina.stl', 'rb').read()
 #sys.stdout.write(data)
 
 #out_error("Operation Completed")
-output_file_and_exit()
+#output_file_and_exit()
 
