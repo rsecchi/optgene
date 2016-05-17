@@ -1,0 +1,14 @@
+#!/bin/bash
+
+STLPATH=/var/www/stl
+CGIPATH=/usr/lib/cgi-bin
+WWWPATH=/var/www/html
+
+cp Tazzina.stl $STLPATH
+
+cp genstl.cgi $CGIPATH
+cp Letters.dxf $CGIPATH
+cp Write.scad $CGIPATH
+
+cp form_test.html $WWWPATH
+
