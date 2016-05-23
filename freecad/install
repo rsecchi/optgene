@@ -4,11 +4,18 @@ STLPATH=/var/www/stl
 CGIPATH=/usr/lib/cgi-bin
 WWWPATH=/var/www/html
 
-cp Tazzina.stl $STLPATH
 
+# copy stls
+cp Tazzina.stl $STLPATH
+cp Flower.stl $STLPATH
+cp logo.stl $STLPATH
+
+# copy CGIs
 cp genstl.cgi $CGIPATH
 cp Letters.dxf $CGIPATH
 cp Write.scad $CGIPATH
 
+
+# copy WWWs
 cp form_test.html $WWWPATH
 

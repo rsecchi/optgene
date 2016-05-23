@@ -37,9 +37,13 @@ echo "
 use <Write.scad>
 
 difference() {
-    import_stl(\"$FILE\", 4);
-    translate([0, 0, 5])
-    write(\"$CODE\",t=10,h=7,center=true);
+	difference() {
+	    import_stl(\"$FILE\", 4);
+	    translate([0, 0, -1])
+	    import_stl(\"/var/www/stl/logo.stl\", 4);
+	}
+	translate([0, 0, 2]);
+	write(\"$CODE\",t=8,h=5,center=true);
 }
 " > $TMP_SCAD
 
