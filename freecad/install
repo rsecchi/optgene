@@ -9,6 +9,7 @@ WWWPATH=/var/www/html
 cp Tazzina.stl $STLPATH
 cp Flower.stl $STLPATH
 cp logo.stl $STLPATH
+cp cubotest.stl $STLPATH
 
 # copy CGIs
 cp genstl.cgi $CGIPATH
