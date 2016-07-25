@@ -21,7 +21,7 @@ def code_to_text(textstr, doc, tmpf):
 	ss = Draft.makeShapeString(textstr, FONTFILE, 3, 0)
 	doc.addObject("Part::Extrusion", "Extrude")
 	doc.Extrude.Base = doc.ShapeString
-	doc.Extrude.Dir = (0, 0, 4)
+	doc.Extrude.Dir = (0, 0, 2)
 	doc.Extrude.Solid = (True)
 	doc.Extrude.TaperAngle = (0)
 	doc.recompute()
