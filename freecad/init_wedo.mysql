@@ -1,0 +1,46 @@
+drop database wedo;
+
+create database wedo;
+
+use wedo;
+
+create table Designers (
+	DesignerID integer not NULL,
+	Firstname varchar(60),
+	Lastname varchar(60),
+	Address varchar(120),
+	Email varchar(60),
+	Postcode varchar(30),
+	Telephone varchar(60),
+	PRIMARY KEY (DesignerID)
+);
+
+create table Products (
+	ProductID integer not NULL,
+	Filename varchar(256),
+	Description varchar(400),
+	DesignerID integer not NULL,
+	PRIMARY KEY (ProductID),
+	FOREIGN KEY (DesignerID) REFERENCES Designers(DesignerID)
+);
+
+create table Clients (
+	ClientID integer not NULL,
+	Firstname varchar(60),
+	Lastname varchar(60),
+	Address varchar(120),
+	Email varchar(60),
+	Postcode varchar(30),
+	Telephone varchar(60),
+	PRIMARY KEY (ClientID)
+);
+
+create table Sales (
+	SaleID char(5) not NULL,
+	ProductID integer,
+	ClientID integer,
+	PRIMARY KEY (SaleID),
+	FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
+	FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
