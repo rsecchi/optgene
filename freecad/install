@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Before running install
+#
+# mkdir /var/www/stl
+# a2mod cgi
+
+
 STLPATH=/var/www/stl
 CGIPATH=/usr/lib/cgi-bin
 WWWPATH=/var/www/html

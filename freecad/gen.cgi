@@ -54,11 +54,11 @@ fi
 
 export OPENSCADPATH=/usr/lib/cgi-bin
 
-TMP_OUT=$(tempfile).stl
-trap "rm -f $TMP_OUT" EXIT
+TMP_OUT=$(tempfile --suffix .stl)
+TMP_SCAD=$(tempfile --suffix .scad)
 
-TMP_SCAD=$(tempfile).scad
-trap "rm -f $TMP_SCAD" EXIT
+trap "rm -f ${TMP_OUT} ${TMP_SCAD}" EXIT
+#trap "rm -f $TMP_SCAD" EXIT
 
 echo "
 use <Write.scad>
@@ -93,7 +93,6 @@ echo "Content-type: application/sla"
 echo "Content-Disposition: inline; filename=\"$OUTNAME\""
 echo
 cat $TMP_OUT
-#cat $TMP_SCAD
 
-#echo "$X $Y $bold $space"
+
 
