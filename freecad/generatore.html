@@ -19,6 +19,7 @@ input[type=text] {
 
 label {
 	width: 400px;
+	margin-bottom: 15px;
 }
 
 #frm {
@@ -46,6 +47,8 @@ label {
 
 <form id="frm" action="cgi-bin/gen.cgi" method="get">
 	<div id="mdiv">
+		<label id="lbl">Designer:</label>
+		<input type="text" name="designer">
 		<label id="lbl">Filename:</label>
 		<input type="text" name="filename">
 	</div>
