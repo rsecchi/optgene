@@ -11,6 +11,10 @@ CGIPATH=/usr/lib/cgi-bin
 WWWPATH=/var/www/html
 
 
+mkdir -p $STLPATH
+mkdir -p $CGIPATH
+mkdir -p $WWWPATH
+
 # copy stls
 cp Tazzina.stl $STLPATH
 cp Flower.stl $STLPATH
