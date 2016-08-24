@@ -10,6 +10,7 @@
 STLPATH=/var/www/stl
 
 FILENAME=$( echo $QUERY_STRING | sed 's/.*filename=\(.*\)$/\1/' )
+DESIGNER=$( echo $QUERY_STRING | sed 's/.*designer=\(.*\)&.*$/\1/' )
 #FILENAME="cubotest.stl"
 #CODE1=$( echo $QUERY_STRING | sed 's/.*code1=\([^&]*\).*/\1/' )
 #CODE2=$( echo $QUERY_STRING | sed 's/.*code2=\([^&]*\).*/\1/' )
@@ -19,7 +20,7 @@ CODE1=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 2 | head -n 1)
 CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
 
 
-FILE=$STLPATH/$FILENAME
+FILE=$STLPATH/$DESIGNER/$FILENAME
 
 #X1=$( echo $QUERY_STRING | sed 's/.*X1=\([^&]*\).*/\1/' )
 #Y1=$( echo $QUERY_STRING | sed 's/.*Y1=\([^&]*\).*/\1/' )
