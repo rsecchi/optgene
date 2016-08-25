@@ -21,6 +21,7 @@ CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
 
 
 FILE=$STLPATH/$DESIGNER/$FILENAME
+OUTNAME=${DESIGNER}_$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
 
 #X1=$( echo $QUERY_STRING | sed 's/.*X1=\([^&]*\).*/\1/' )
 #Y1=$( echo $QUERY_STRING | sed 's/.*Y1=\([^&]*\).*/\1/' )
@@ -52,6 +53,9 @@ fi
 
 ############## RUN OPENSCAD ###############
 
+(
+
+exec 1>&-
 
 export OPENSCADPATH=/usr/lib/cgi-bin
 
@@ -59,18 +63,14 @@ TMP_OUT=$(tempfile --suffix .stl)
 TMP_SCAD=$(tempfile --suffix .scad)
 
 trap "rm -f ${TMP_OUT} ${TMP_SCAD}" EXIT
-#trap "rm -f $TMP_SCAD" EXIT
+trap "rm -f $TMP_SCAD" EXIT
 
 echo "
 use <Write.scad>
 
 difference() {
 	difference() {
-		difference() {
-		    import_stl(\"$FILE\", 4);
-		    translate([0, 0, -1])
-		    import_stl(\"/var/www/stl/logo.stl\", 4);
-		}
+		import_stl(\"$FILE\", 4);
 		translate([$X1, $Y1, 0])
 		mirror([1,0,0])
 		write(\"$CODE1\",t=2,h=$high,center=true,space=$space,bold=$bold);
@@ -81,19 +81,31 @@ difference() {
 }
 " > $TMP_SCAD
 
+openscad $TMP_SCAD -o $TMP_OUT 
 
-openscad $TMP_SCAD -o $TMP_OUT
+mv $TMP_OUT /var/www/html/out_stl/${OUTNAME}
+
+) &
+
 
 #echo $FILENAME >> $TMP_SCAD
 
 ########### RETURN FILE TO USER ########
 
-OUTNAME=$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
+#
+#echo "Content-type: application/sla"
+#echo "Content-Disposition: inline; filename=\"$OUTNAME\""
+#echo
+#cat $TMP_OUT
 
-echo "Content-type: application/sla"
-echo "Content-Disposition: inline; filename=\"$OUTNAME\""
+
+echo "Content-type: text/html"
 echo
-cat $TMP_OUT
+echo "<p>Please wait!</p>"
+echo "<p>The file name is ${OUTNAME}</p>"
+echo "<p>The file will be placed in out_stl</p>"
 
+
+#echo "Content-Disposition: inline; filename=\"$OUTNAME\""
 
 
