@@ -54,16 +54,19 @@ fi
 ############## RUN OPENSCAD ###############
 
 (
+START=$(date +%s)
 
 exec 1>&-
 
 export OPENSCADPATH=/usr/lib/cgi-bin
 
 TMP_OUT=$(tempfile --suffix .stl)
-TMP_SCAD=$(tempfile --suffix .scad)
+TMP_OBJ=$(basename $TMP_OUT .stl)
+TMP_BIN_OUT=$(tempfile --prefix bin_ --suffix .stl)
+TMP_SCAD=$(tempfile  --suffix .scad)
 
-trap "rm -f ${TMP_OUT} ${TMP_SCAD}" EXIT
-trap "rm -f $TMP_SCAD" EXIT
+trap "rm -f ${TMP_OUT} ${TMP_SCAD} " EXIT
+#trap "rm -f $TMP_SCAD" EXIT
 
 echo "
 use <Write.scad>
@@ -83,14 +86,25 @@ difference() {
 
 openscad $TMP_SCAD -o $TMP_OUT 
 
-mv $TMP_OUT /var/www/html/out_stl/${OUTNAME}
+/usr/lib/cgi-bin/exportbin.py $TMP_OUT $TMP_BIN_OUT $TMP_OBJ
+
+mv $TMP_BIN_OUT /var/www/html/out_stl/${OUTNAME}
+
+END=$(date +%s)
+
+{
+	echo "<p>${OUTNAME}  "
+	echo $((END-START)) | awk '{print int($1/60)":"int($1%60)}';
+	echo "</p>"
+} >> /var/www/html/out_stl/times.html
+
 
 ) &
 
 
 #echo $FILENAME >> $TMP_SCAD
 
-########### RETURN FILE TO USER ########
+########### RETURN PAGE TO USER ########
 
 #
 #echo "Content-type: application/sla"
