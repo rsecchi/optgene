@@ -33,6 +33,7 @@ cp gen.cgi $CGIPATH
 cp Letters.dxf $CGIPATH
 cp Write.scad $CGIPATH
 cp exportbin.py $CGIPATH
+cp run_openscad.sh $CGIPATH
 
 
 # copy WWWs
