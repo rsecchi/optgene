@@ -28,7 +28,7 @@ circle(vector c, float radius, vector a, vector b)
 	q = (b[0]-a[0])*(b[0]-a[0]) + (b[1]-a[1])*(b[1]-a[1]);
 	t = (b[0]-a[0])*(a[0]-c[0]) + (b[1]-a[1])*(a[1]-c[1]);
 
-	t  = t/q;
+	t  = -t/q;
 
 	printf("%f\n",t);
 }
