@@ -4,7 +4,7 @@
 
 #define DELTA 0.1
 #define SIZE 500
-#define XOFF 100
+#define XOFF 50
 #define YOFF 300
 
 
@@ -13,17 +13,23 @@ struct stl_hdr {
 	int   nfacets;
 };
 
-struct __attribute__((__packed__)) triangle {
+typedef struct __attribute__((__packed__)) {
 	float normal[3];
 	float v1[3];
 	float v2[3];
 	float v3[3];
 	unsigned short c;
-};
+} triangle;
+
+
+typedef struct {
+	float v1[3];
+	float v2[3];
+} line;
 
 struct stl_file {
 	struct stl_hdr *hdr;
-	struct triangle* trg;
+	triangle* trg;
 	int fsize;
 
 }* sfile;
@@ -34,6 +40,72 @@ FILE* outfile;
 float minx, miny;
 float maxx, maxy;
 float side;
+
+
+int border(triangle* t, int size, line** res)
+{
+	int i, j;
+	line* r;
+	int nl = 3*size;
+
+	r = (line *)calloc(nl, sizeof(line));
+
+	/* create a list of lines */
+	for(int i=0; i<size; i++)
+	{
+		memcpy(r[3*i].v1,   t[i].v1, 3*sizeof(float));
+		memcpy(r[3*i].v2,   t[i].v2, 3*sizeof(float));
+		memcpy(r[3*i+1].v1, t[i].v2, 3*sizeof(float));
+		memcpy(r[3*i+1].v2, t[i].v3, 3*sizeof(float));
+		memcpy(r[3*i+2].v1, t[i].v1, 3*sizeof(float));
+		memcpy(r[3*i+2].v2, t[i].v3, 3*sizeof(float));
+	}
+
+	for(i=0; i<nl; i++)
+	{
+		printf("++++ i=%d  nl=%d\n", i, nl);
+		for(j=i+1; j<nl; j++)
+		{
+			if ((r[i].v1[0] == r[j].v1[0] && 
+			     r[i].v1[1] == r[j].v1[1] &&
+			     r[i].v1[2] == r[j].v1[2] &&
+
+			     r[i].v2[0] == r[j].v2[0] &&
+			     r[i].v2[1] == r[j].v2[1] &&
+			     r[i].v2[2] == r[j].v2[2] ) || 
+
+			    (r[i].v1[0] == r[j].v2[0] && 
+			     r[i].v1[1] == r[j].v2[1] &&
+			     r[i].v1[2] == r[j].v2[2] &&
+
+			     r[i].v2[0] == r[j].v1[0] &&
+			     r[i].v2[1] == r[j].v1[1] &&
+			     r[i].v2[2] == r[j].v1[2])) 
+			{
+				/* The lines are the equivalent */
+				/* remove them! */
+				printf("%d %d congruent\n", i, j);
+				printf("%d -> %d congruent\n", nl-1, i);
+				printf("%d -> %d congruent\n", nl-2, j);
+				
+				memcpy(r[j].v1, r[nl-1].v1, 3*sizeof(float));
+				memcpy(r[j].v2, r[nl-1].v2, 3*sizeof(float));
+				memcpy(r[i].v1, r[nl-2].v1, 3*sizeof(float));
+				memcpy(r[i].v2, r[nl-2].v2, 3*sizeof(float));
+				
+				nl-=2;
+				i--;
+				break;
+			}
+		}
+		printf("---- i=%d  nl=%d\n\n\n", i, nl);
+	}
+
+	*res = realloc(r, nl*sizeof(line));
+
+	return nl;
+}
+
 
 void parse_cl(int argc, char* argv[])
 {
@@ -63,14 +135,14 @@ void parse_cl(int argc, char* argv[])
 		fprintf(stderr, "%s: error allocating memory\n", argv[0]);
 		exit(1);
 	}
-	sfile->trg = (struct triangle*) (sfile->hdr + 1);
+	sfile->trg = (triangle*) (sfile->hdr + 1);
 
 	fread((char*)sfile->hdr, sizeof(char), sfile->fsize, infile);
 	fclose(infile);
 
 	printf("%d bytes copied from %s\n", sfile->fsize, argv[1]);
 
-	if ( sizeof(struct triangle)*sfile->hdr->nfacets +
+	if ( sizeof(triangle)*sfile->hdr->nfacets +
 		sizeof(struct stl_hdr) == sfile->fsize )
 		printf("%s received OK: %d triangle\n", argv[1], 
 			sfile->hdr->nfacets);
@@ -97,11 +169,22 @@ float ys(float y)
 	return SIZE * (y-miny)/side + YOFF;
 }
 
-
 void
-print_proj_xy(struct triangle* t)
+print_line(line* t)
 {
 	fprintf(outfile, "newpath\n");
+	fprintf(outfile, "4 setlinewidth\n");
+	fprintf(outfile, "%f %f moveto\n", xs(t->v1[0]), ys(t->v1[1]));
+	fprintf(outfile, "%f %f lineto\n", xs(t->v2[0]), ys(t->v2[1]));
+	fprintf(outfile, "stroke\n");
+}
+
+
+void
+print_proj_xy(triangle* t)
+{
+	fprintf(outfile, "newpath\n");
+	fprintf(outfile, "1 setlinewidth\n");
 	fprintf(outfile, "%f %f moveto\n", xs(t->v1[0]), ys(t->v1[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v2[0]), ys(t->v2[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v3[0]), ys(t->v3[1]));
@@ -114,7 +197,7 @@ void
 base_triangles()
 {
 	int i;
-	struct triangle* trg = sfile->trg;
+	triangle* trg = sfile->trg;
 	int count = 0;
 
 	minx = maxx = trg[0].v1[0];
@@ -173,12 +256,14 @@ base_triangles()
 	else
 		side = maxy - miny;
 
-
 	for(i=0; i<sfile->hdr->nfacets; i++) {
 		if (trg[i].v1[2] > -DELTA && trg[i].v1[2] < DELTA &&
 		    trg[i].v2[2] > -DELTA && trg[i].v2[2] < DELTA &&
 		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA) {
+
+
 			print_proj_xy(&trg[i]);
+			
 
 		}
 	}
@@ -193,8 +278,14 @@ base_triangles()
 int
 main(int argc, char* argv[])
 {
+	line* l;
+	int nl;
 	parse_cl(argc, argv);
 	base_triangles();
+	nl = border(sfile->trg, sfile->hdr->nfacets, &l);
+	for(int i=0; i<nl; i++)
+		print_line(&l[i]);
+
 	//join_files();
 }
 
