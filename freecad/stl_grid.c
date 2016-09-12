@@ -2,10 +2,12 @@
 #include <strings.h>
 #include <stdlib.h>
 
-#define DX       1.000
-#define DY       0.866
-#define COLS       10
-#define ROWS       16
+//#define DX       2.000
+//#define DY       1.732
+#define DX       4.000
+#define DY       3.4641 
+#define COLS       50
+#define ROWS       52
 
 const char str_hdr[] =  "WEDO test mesh";
 
@@ -41,11 +43,11 @@ int main()
 	}
 	fwrite(&hdr, sizeof(hdr), 1, stl_file);
 
-	for(int j=0; j<ROWS; j++) {
+	for(int j=-ROWS/2; j<ROWS/2; j++) {
 
 		dx = (j%2)*.5;
 
-		for(int i=0; i<COLS; i++)
+		for(int i=-COLS/2; i<COLS/2; i++)
 		{
 
 			bzero(&t1, sizeof(t1));

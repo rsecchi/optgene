@@ -6,7 +6,7 @@
 #define SIZE 500
 #define XOFF 50
 #define YOFF 300
-#define RADIUS 2
+#define RADIUS 3
 
 #define xs(x)  (SIZE*((x)-minx)/side + XOFF)
 #define ys(y)  (SIZE*((y)-miny)/side + YOFF)
@@ -69,7 +69,6 @@ int border(triangle* t, int size, line** res)
 
 	for(i=0; i<nl; i++)
 	{
-		printf("++++ i=%d  nl=%d\n", i, nl);
 		for(j=i+1; j<nl; j++)
 		{
 			if ((r[i].v1[0] == r[j].v1[0] && 
@@ -90,10 +89,6 @@ int border(triangle* t, int size, line** res)
 			{
 				/* The lines are the equivalent */
 				/* remove them! */
-				printf("%d %d congruent\n", i, j);
-				printf("%d -> %d congruent\n", nl-1, i);
-				printf("%d -> %d congruent\n", nl-2, j);
-				
 				memcpy(r[j].v1, r[nl-1].v1, 3*sizeof(float));
 				memcpy(r[j].v2, r[nl-1].v2, 3*sizeof(float));
 				memcpy(r[i].v1, r[nl-2].v1, 3*sizeof(float));
@@ -104,7 +99,6 @@ int border(triangle* t, int size, line** res)
 				break;
 			}
 		}
-		printf("---- i=%d  nl=%d\n\n\n", i, nl);
 	}
 
 	*res = realloc(r, nl*sizeof(line));
@@ -152,9 +146,10 @@ void parse_cl(int argc, char* argv[])
 		sizeof(struct stl_hdr) == sfile->fsize )
 		printf("%s received OK: %d triangle\n", argv[1], 
 			sfile->hdr->nfacets);
-	else
-		printf("%s not OK\n", argv[i+1]);
-		
+	else {
+		printf("%s not OK\n", argv[1]);
+		exit(1);
+	}	
 
 	outfile = fopen("out.ps", "w");
 	if (outfile == NULL) {
@@ -170,6 +165,7 @@ print_line(line* t)
 {
 	fprintf(outfile, "newpath\n");
 	fprintf(outfile, "4 setlinewidth\n");
+	fprintf(outfile, "0.3 setgray\n");
 	fprintf(outfile, "%f %f moveto\n", xs(t->v1[0]), ys(t->v1[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v2[0]), ys(t->v2[1]));
 	fprintf(outfile, "stroke\n");
@@ -200,7 +196,6 @@ sec_line(vector a, vector b, float radius)
 	x2 = b[0];
 	y2 = b[1];
 
-
 	if (x1 == x2 && y1 == y2)
 		return 0;
 
@@ -208,7 +203,6 @@ sec_line(vector a, vector b, float radius)
 	r1 = x1*x1 + y1*y1; 
 	r2 = x2*x2 + y2*y2;
 	rr = radius*radius;	
-
 
 	if ( r1 < rr || r2 < rr )
 		return 1;
@@ -280,21 +274,18 @@ int split_solid(triangle* trg, int nf, int radius)
 	triangle work;
 	int last = nf;
 
-	for(int i=0; i<nf; i++) {
+	for(int i=0; i<last; i++) {
 		if (trg[i].v1[2] > -DELTA && trg[i].v1[2] < DELTA &&
 		    trg[i].v2[2] > -DELTA && trg[i].v2[2] < DELTA &&
 		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA &&
 		    sec_circle(&trg[i], radius)) {
-
-
-			printf("tombola .... %d\n", i);
 
 			/* Put the triangle at the end of the list */
 			last--;
 			memcpy(&work, &trg[i], sizeof(triangle));
 			memcpy(&trg[i], &trg[last], sizeof(triangle));
 			memcpy(&trg[last], &work, sizeof(triangle));
-
+			i--;	
 		}
 	}
 
@@ -401,10 +392,8 @@ main(int argc, char* argv[])
 	base_triangles();
 
 	ind = split_solid(sfile->trg, sfile->hdr->nfacets, RADIUS);
-	
-	printf(">>>>>>>>>>> %d\n", sfile->hdr->nfacets-ind);
-
 	nl = border(&sfile->trg[ind], sfile->hdr->nfacets-ind, &l);
+
 	for(int i=0; i<nl; i++)
 		print_line(&l[i]);
 
