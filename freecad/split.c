@@ -6,7 +6,13 @@
 #define SIZE 500
 #define XOFF 50
 #define YOFF 300
+#define RADIUS 2
 
+#define xs(x)  (SIZE*((x)-minx)/side + XOFF)
+#define ys(y)  (SIZE*((y)-miny)/side + YOFF)
+
+
+typedef float vector[3];
 
 struct stl_hdr {
 	char  text[80];
@@ -159,11 +165,6 @@ void parse_cl(int argc, char* argv[])
 }
 
 
-
-#define xs(x)  (SIZE*((x)-minx)/side + XOFF)
-#define ys(y)  (SIZE*((y)-miny)/side + YOFF)
-
-
 void
 print_line(line* t)
 {
@@ -187,6 +188,118 @@ print_proj_xy(triangle* t)
 	fprintf(outfile, "stroke\n");
 }
 
+int
+sec_line(vector a, vector b, float radius)
+{
+	float t, d, l, r1, r2, rr;
+	float x1, y1, x2, y2, xh, yh;
+	
+	/* convert everything into double */
+	x1 = a[0];
+	y1 = a[1];
+	x2 = b[0];
+	y2 = b[1];
+
+
+	if (x1 == x2 && y1 == y2)
+		return 0;
+
+	/* endpoint distances^2 from center */
+	r1 = x1*x1 + y1*y1; 
+	r2 = x2*x2 + y2*y2;
+	rr = radius*radius;	
+
+
+	if ( r1 < rr || r2 < rr )
+		return 1;
+
+	/* Now, both points are out */
+
+	/* segment size^2 */
+	l = (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
+
+	/* scalar product center-segment */
+	d = - (x2-x1)*x1 - (y2-y1)*y1;
+
+
+	if (d>0 && d<l) {
+		/* center-segment vector*/
+		xh = (x2-x1)*d/l + x1;
+		yh = (y2-y1)*d/l + y1;
+		
+		if ( xh*xh + yh*yh < rr )
+			return 1;
+	}
+		
+	return 0;
+}
+
+
+int sec_circle(triangle* t, float radius)
+{
+
+	float D, Ds, Dt;
+	float x1, y1, x2, y2, x3, y3;
+
+	x1 = t->v1[0];
+	y1 = t->v1[1];
+	x2 = t->v2[0];
+	y2 = t->v2[1];
+	x3 = t->v3[0];
+	y3 = t->v3[1];
+
+	/* Is the center inside the triangle? */
+	D  = (x2-x1)*(y3-y1) - (x3-x1)*(y2-y1);
+	Ds = (  -x1)*(y3-y1) - (  -y1)*(x3-x1); 
+	Dt = (x2-x1)*(  -y1) - (  -x1)*(y2-y1);
+
+	if ( D < 0) {
+		D = -D;
+		Ds = -Ds;
+		Dt = -Dt;
+	}
+
+	if (Dt>=0 && Ds>=0 && Ds+Dt<=D)
+		return 1;	
+
+	/* Does the circle intersect on side of the triangle? */
+	if (sec_line(t->v1, t->v2, radius) ||
+	    sec_line(t->v1, t->v3, radius) ||
+	    sec_line(t->v2, t->v3, radius))
+		return 1;
+
+	return 0;	
+}
+
+/* split_solid: 
+   Separate the triangles that touch the cilinder from the others. 
+
+ */
+int split_solid(triangle* trg, int nf, int radius)
+{
+	triangle work;
+	int last = nf;
+
+	for(int i=0; i<nf; i++) {
+		if (trg[i].v1[2] > -DELTA && trg[i].v1[2] < DELTA &&
+		    trg[i].v2[2] > -DELTA && trg[i].v2[2] < DELTA &&
+		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA &&
+		    sec_circle(&trg[i], radius)) {
+
+
+			printf("tombola .... %d\n", i);
+
+			/* Put the triangle at the end of the list */
+			last--;
+			memcpy(&work, &trg[i], sizeof(triangle));
+			memcpy(&trg[i], &trg[last], sizeof(triangle));
+			memcpy(&trg[last], &work, sizeof(triangle));
+
+		}
+	}
+
+	return last;
+}
 
 void
 base_triangles()
@@ -256,7 +369,6 @@ base_triangles()
 		    trg[i].v2[2] > -DELTA && trg[i].v2[2] < DELTA &&
 		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA) {
 
-
 			print_proj_xy(&trg[i]);
 			
 
@@ -268,18 +380,35 @@ base_triangles()
 
 }
 
+void print_circle()
+{
+	fprintf(outfile, "newpath\n");
+	fprintf(outfile, "0 setgray\n");
+	fprintf(outfile, "1 setlinewidth\n");
+	fprintf(outfile, "%f %f %f 0 360 arc\n", 
+		(double)(xs(0)), (double)(ys(0)), (double)(xs(RADIUS)-xs(0)));
+	fprintf(outfile, "stroke\n");
+	
+} 
 
 
 int
 main(int argc, char* argv[])
 {
 	line* l;
-	int nl;
+	int nl, ind;
 	parse_cl(argc, argv);
 	base_triangles();
-	nl = border(sfile->trg, sfile->hdr->nfacets, &l);
+
+	ind = split_solid(sfile->trg, sfile->hdr->nfacets, RADIUS);
+	
+	printf(">>>>>>>>>>> %d\n", sfile->hdr->nfacets-ind);
+
+	nl = border(&sfile->trg[ind], sfile->hdr->nfacets-ind, &l);
 	for(int i=0; i<nl; i++)
 		print_line(&l[i]);
+
+	print_circle();
 
 	//join_files();
 }
