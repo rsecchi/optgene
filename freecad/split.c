@@ -188,12 +188,13 @@ void
 print_proj_xy(triangle* t)
 {
 	fprintf(outfile, "newpath\n");
-	fprintf(outfile, "1 setlinewidth\n");
+	fprintf(outfile, "0.2 setlinewidth\n");
 	fprintf(outfile, "%f %f moveto\n", xs(t->v1[0]), ys(t->v1[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v2[0]), ys(t->v2[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v3[0]), ys(t->v3[1]));
 	fprintf(outfile, "%f %f lineto\n", xs(t->v1[0]), ys(t->v1[1]));
 	fprintf(outfile, "stroke\n");
+
 }
 
 int
@@ -201,7 +202,8 @@ sec_line(vector a, vector b, float radius)
 {
 	float t, d, l, r1, r2, rr;
 	float x1, y1, x2, y2, xh, yh;
-	
+
+
 	/* convert everything into double */
 	x1 = a[0];
 	y1 = a[1];
@@ -268,6 +270,7 @@ int sec_circle(triangle* t, float radius)
 	if (Dt>=0 && Ds>=0 && Ds+Dt<=D)
 		return 1;	
 
+
 	/* Does the circle intersect on side of the triangle? */
 	if (sec_line(t->v1, t->v2, radius) ||
 	    sec_line(t->v1, t->v3, radius) ||
@@ -281,12 +284,13 @@ int sec_circle(triangle* t, float radius)
    Separate the triangles that touch the cilinder from the others. 
 
  */
-int split_solid(triangle* trg, int nf, int radius)
+int split_solid(triangle* trg, int nf, float radius)
 {
 	triangle work;
 	int last = nf;
 
-	for(int i=0; i<last; i++) {
+	for(int i=0; i<last; i++){
+
 		if (trg[i].v1[2] > -DELTA && trg[i].v1[2] < DELTA &&
 		    trg[i].v2[2] > -DELTA && trg[i].v2[2] < DELTA &&
 		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA &&
@@ -297,11 +301,26 @@ int split_solid(triangle* trg, int nf, int radius)
 			memcpy(&work, &trg[i], sizeof(triangle));
 			memcpy(&trg[i], &trg[last], sizeof(triangle));
 			memcpy(&trg[last], &work, sizeof(triangle));
-			i--;	
+			i--;
+				
 		}
 	}
 
 	return last;
+}
+
+void print_number(triangle* t, int n)
+{
+	float xbar, ybar;
+
+	xbar = (t->v1[0] + t->v2[0] + t->v3[0])/3;
+	ybar = (t->v1[1] + t->v2[1] + t->v3[1])/3;
+	
+	fprintf(outfile,"newpath\n");
+	fprintf(outfile,"%f %f moveto\n", xs(xbar), ys(ybar));
+	fprintf(outfile,"(%d) show\n", n);
+	fprintf(outfile,"stroke\n");
+	
 }
 
 void
@@ -373,7 +392,7 @@ base_triangles()
 		    trg[i].v3[2] > -DELTA && trg[i].v3[2] < DELTA) {
 
 			print_proj_xy(&trg[i]);
-			
+			// print_number(&trg[i], i);
 
 		}
 	}
@@ -401,6 +420,7 @@ main(int argc, char* argv[])
 	line* l;
 	int nl, ind;
 	parse_cl(argc, argv);
+	print_title();
 	base_triangles();
 
 	ind = split_solid(sfile->trg, sfile->hdr->nfacets, RADIUS);
@@ -410,7 +430,6 @@ main(int argc, char* argv[])
 		print_line(&l[i]);
 
 	print_circle();
-	print_title();
 
 	//join_files();
 }
