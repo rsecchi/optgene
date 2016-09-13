@@ -6,7 +6,7 @@
 #define SIZE 500
 #define XOFF 50
 #define YOFF 300
-#define RADIUS 3
+#define RADIUS 14.5
 
 #define xs(x)  (SIZE*((x)-minx)/side + XOFF)
 #define ys(y)  (SIZE*((y)-miny)/side + YOFF)
@@ -41,6 +41,7 @@ struct stl_file {
 }* sfile;
 int nofiles;
 FILE* outfile;
+char* title;
 	
 /* bounding box */
 float minx, miny;
@@ -106,6 +107,16 @@ int border(triangle* t, int size, line** res)
 	return nl;
 }
 
+void print_title()
+{
+	fprintf(outfile, "/Times-Roman findfont\n");
+	fprintf(outfile,"12 scalefont\n");
+	fprintf(outfile,"setfont\n");
+	fprintf(outfile,"newpath\n");
+	fprintf(outfile,"10 50 moveto\n");
+	fprintf(outfile,"(%s) show\n", title);
+	fprintf(outfile,"stroke\n");
+}
 
 void parse_cl(int argc, char* argv[])
 {
@@ -119,6 +130,7 @@ void parse_cl(int argc, char* argv[])
 
 	sfile = (struct stl_file*)malloc(sizeof(struct stl_file));
 		
+	title = argv[1];
 	infile = fopen(argv[1],"r");	
 	if (!infile) {
 		fprintf(stderr, "%s: %s not found\n", argv[0], argv[i+1]);
@@ -377,7 +389,7 @@ void print_circle()
 	fprintf(outfile, "0 setgray\n");
 	fprintf(outfile, "1 setlinewidth\n");
 	fprintf(outfile, "%f %f %f 0 360 arc\n", 
-		(double)(xs(0)), (double)(ys(0)), (double)(xs(RADIUS)-xs(0)));
+		(double)(xs(0)), (double)(ys(0)), (double)((xs(RADIUS))-(xs(0))));
 	fprintf(outfile, "stroke\n");
 	
 } 
@@ -398,6 +410,7 @@ main(int argc, char* argv[])
 		print_line(&l[i]);
 
 	print_circle();
+	print_title();
 
 	//join_files();
 }
