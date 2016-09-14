@@ -7,6 +7,7 @@
 #define XOFF 50
 #define YOFF 300
 #define RADIUS 14.5
+#define EXT_SIZE 4;
 
 #define xs(x)  (SIZE*((x)-minx)/side + XOFF)
 #define ys(y)  (SIZE*((y)-miny)/side + YOFF)
@@ -258,7 +259,7 @@ int sec_circle(triangle* t, float radius)
 
 	/* Is the center inside the triangle? */
 	D  = (x2-x1)*(y3-y1) - (x3-x1)*(y2-y1);
-	Ds = (  -x1)*(y3-y1) - (  -y1)*(x3-x1); 
+	Ds = (  -x1)*(y3-y1) - (  -y1)*(x3-x1);
 	Dt = (x2-x1)*(  -y1) - (  -x1)*(y2-y1);
 
 	if ( D < 0) {
@@ -268,8 +269,7 @@ int sec_circle(triangle* t, float radius)
 	}
 
 	if (Dt>=0 && Ds>=0 && Ds+Dt<=D)
-		return 1;	
-
+		return 1;
 
 	/* Does the circle intersect on side of the triangle? */
 	if (sec_line(t->v1, t->v2, radius) ||
@@ -414,6 +414,62 @@ void print_circle()
 } 
 
 
+void extrude_border(line* border, int bs, triangle* t, int ts)
+{
+	FILE* fp;
+	char fname[256];
+	struct stl_hdr hdre;
+	triangle tt;
+	int i;
+
+	strcpy(fname, title);
+	strcat(fname, ".extrude.stl");
+
+	fp = fopen(fname,"w");
+
+	if (!fp) {
+		fprintf(stderr, "Couldn't open %s for writing\n", fname);
+		exit(1);
+	}
+
+	
+	strcpy(hdre.text, "Wedo");
+	hdre.nfacets = 2*(ts+bs);
+	fwrite(&hdre, sizeof(hdre), 1, fp);
+	printf("copying %d triangles\n", ts);
+	fwrite(&t[i], sizeof(triangle), ts, fp);
+
+	for(i=0; i<ts; i++) {
+		memcpy(&tt, &t[i], sizeof(triangle));
+		tt.normal[0] = -tt.normal[0];
+		tt.normal[1] = -tt.normal[1];
+		tt.normal[2] = -tt.normal[2];
+		tt.v1[2] += EXT_SIZE;
+		tt.v2[2] += EXT_SIZE;
+		tt.v3[2] += EXT_SIZE;
+		fwrite(&tt, sizeof(tt), 1, fp);
+	}
+
+	for(i=0; i<bs; i++) {
+		bzero(&tt, sizeof(tt));
+		memcpy(&(tt.v1), &(border[i].v1), sizeof(vector));
+		memcpy(&(tt.v2), &(border[i].v2), sizeof(vector));
+		memcpy(&(tt.v3), &(border[i].v1), sizeof(vector));
+		tt.v3[2] += EXT_SIZE;		
+		fwrite(&tt, sizeof(tt), 1, fp);
+
+		bzero(&tt, sizeof(tt));
+		memcpy(&(tt.v1), &(border[i].v1), sizeof(vector));
+		tt.v1[2] += EXT_SIZE;		
+		memcpy(&(tt.v2), &(border[i].v2), sizeof(vector));
+		tt.v2[2] += EXT_SIZE;		
+		memcpy(&(tt.v3), &(border[i].v2), sizeof(vector));
+		fwrite(&tt, sizeof(tt), 1, fp);
+	}
+		
+	fclose(fp);
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -424,14 +480,17 @@ main(int argc, char* argv[])
 	base_triangles();
 
 	ind = split_solid(sfile->trg, sfile->hdr->nfacets, RADIUS);
+	printf("ind=%d\n", ind);
 	nl = border(&sfile->trg[ind], sfile->hdr->nfacets-ind, &l);
+	printf("hole facets %d\n", sfile->hdr->nfacets-ind);
+
+	extrude_border(l, nl, &sfile->trg[ind], sfile->hdr->nfacets-ind);
 
 	for(int i=0; i<nl; i++)
 		print_line(&l[i]);
 
 	print_circle();
 
-	//join_files();
 }
 
 

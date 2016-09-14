@@ -146,10 +146,14 @@ void parse_cl(int argc, char* argv[])
 		sizeof(struct stl_hdr) == sfile->fsize )
 		printf("%s received OK: %d triangle\n", argv[1], 
 			sfile->hdr->nfacets);
-	else
-		printf("%s not OK\n", argv[i+1]);
-		
-
+	else {
+		fprintf(stderr, "%d in header\n", sfile->hdr->nfacets);
+		fprintf(stderr, "%lu read in file\n", 
+			(sfile->fsize - sizeof(struct stl_hdr))/sizeof(triangle));
+		fprintf(stderr, "%s not OK\n", argv[1]);
+		exit(1);
+	}	
+	
 	outfile = fopen("out.ps", "w");
 	if (outfile == NULL) {
 		fprintf(stderr, "%s: Cannot open out.ps for writing\n", 
