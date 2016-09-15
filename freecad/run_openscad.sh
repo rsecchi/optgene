@@ -24,6 +24,10 @@ TMP_SCAD=$(tempfile  --suffix .scad)
 trap "rm -f ${TMP_OUT} ${TMP_SCAD} ${FILELOCK} ${TMP_BIN_OUT}" EXIT
 
 
+############ SPLIT SOLID   ####################
+
+/usr/local/bin/stl_split  $FILE 2> /tmp/cize
+admesh /tmp/stlout_solid.stl -b /tmp/stlout_fixed.stl
 
 ############ RUN OPENSCAD  ##################### 
 
@@ -32,14 +36,18 @@ use <Write.scad>
 
 difference() {
 	difference() {
-		import_stl(\"$FILE\", 4);
-		translate([-0.75, 3.2, 0])
+		difference() {
+			import_stl(\"/tmp/stlout_fixed.stl\", 4);
+			translate([-0.75, 3.2, 0])
+			mirror([1,0,0])
+			write(\"$CODE1\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
+		}
+		translate([-0.75, -3.2, 0])
 		mirror([1,0,0])
-		write(\"$CODE1\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
+		write(\"$CODE2\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
 	}
-	translate([-0.75, -3.2, 0])
-	mirror([1,0,0])
-	write(\"$CODE2\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
+	translate([0, 0, -0.5])
+	import_stl(\"/var/www/stl/logo.stl\", 4);
 }
 " > $TMP_SCAD
 
@@ -48,6 +56,8 @@ $CGIPATH/exportbin.py $TMP_OUT $TMP_BIN_OUT $TMP_OBJ
 
 
 ############## UPDATE OUTPOUT ###################
+
+
 
 
 mv $TMP_BIN_OUT /var/www/html/out_stl/${OUTNAME}

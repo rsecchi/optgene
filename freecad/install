@@ -14,6 +14,7 @@ STLPATH=/var/www/stl
 CGIPATH=/usr/lib/cgi-bin
 WWWPATH=/var/www/html
 OUTPATH=/var/www/html/out_stl
+BINPATH=/usr/local/bin
 
 mkdir -p $STLPATH
 mkdir -p $CGIPATH
@@ -40,3 +41,6 @@ cp run_openscad.sh $CGIPATH
 cp form_test.html $WWWPATH
 cp generatore.html $WWWPATH
 
+
+#copy binaries
+cp split $BINPATH/stl_split

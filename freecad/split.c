@@ -164,7 +164,7 @@ void parse_cl(int argc, char* argv[])
 		exit(1);
 	}	
 
-	outfile = fopen("out.ps", "w");
+	outfile = fopen("/tmp/out.ps", "w");
 	if (outfile == NULL) {
 		fprintf(stderr, "%s: Cannot open out.ps for writing\n", 
 			argv[0]);
@@ -413,6 +413,32 @@ void print_circle()
 	
 } 
 
+void save_remainder(triangle* t, int ts)
+{
+	FILE* fp;
+	char fname[256];
+	struct stl_hdr hdre;
+	triangle tt;
+	int i;
+
+	strcpy(fname, "/tmp/stlout_remain.stl");
+	// strcat(fname, ".extrude.stl");
+
+	fp = fopen(fname,"w");
+
+	if (!fp) {
+		fprintf(stderr, "Couldn't open %s for writing\n", fname);
+		exit(1);
+	}
+
+	
+	strcpy(hdre.text, "Wedo");
+	hdre.nfacets = ts;
+	fwrite(&hdre, sizeof(hdre), 1, fp);
+	fwrite(t, sizeof(triangle), ts, fp);
+	
+}
+
 
 void extrude_border(line* border, int bs, triangle* t, int ts)
 {
@@ -422,8 +448,8 @@ void extrude_border(line* border, int bs, triangle* t, int ts)
 	triangle tt;
 	int i;
 
-	strcpy(fname, title);
-	strcat(fname, ".extrude.stl");
+	strcpy(fname, "/tmp/stlout_solid.stl");
+	// strcat(fname, ".extrude.stl");
 
 	fp = fopen(fname,"w");
 
@@ -441,6 +467,8 @@ void extrude_border(line* border, int bs, triangle* t, int ts)
 
 	for(i=0; i<ts; i++) {
 		memcpy(&tt, &t[i], sizeof(triangle));
+		memcpy(&(tt.v1), &(t[i].v2), sizeof(vector));
+		memcpy(&(tt.v2), &(t[i].v1), sizeof(vector));
 		tt.normal[0] = -tt.normal[0];
 		tt.normal[1] = -tt.normal[1];
 		tt.normal[2] = -tt.normal[2];
@@ -452,17 +480,17 @@ void extrude_border(line* border, int bs, triangle* t, int ts)
 
 	for(i=0; i<bs; i++) {
 		bzero(&tt, sizeof(tt));
-		memcpy(&(tt.v1), &(border[i].v1), sizeof(vector));
-		memcpy(&(tt.v2), &(border[i].v2), sizeof(vector));
+		memcpy(&(tt.v2), &(border[i].v1), sizeof(vector));
+		memcpy(&(tt.v1), &(border[i].v2), sizeof(vector));
 		memcpy(&(tt.v3), &(border[i].v1), sizeof(vector));
 		tt.v3[2] += EXT_SIZE;		
 		fwrite(&tt, sizeof(tt), 1, fp);
 
 		bzero(&tt, sizeof(tt));
-		memcpy(&(tt.v1), &(border[i].v1), sizeof(vector));
-		tt.v1[2] += EXT_SIZE;		
-		memcpy(&(tt.v2), &(border[i].v2), sizeof(vector));
+		memcpy(&(tt.v2), &(border[i].v1), sizeof(vector));
 		tt.v2[2] += EXT_SIZE;		
+		memcpy(&(tt.v1), &(border[i].v2), sizeof(vector));
+		tt.v1[2] += EXT_SIZE;		
 		memcpy(&(tt.v3), &(border[i].v2), sizeof(vector));
 		fwrite(&tt, sizeof(tt), 1, fp);
 	}
@@ -483,8 +511,10 @@ main(int argc, char* argv[])
 	printf("ind=%d\n", ind);
 	nl = border(&sfile->trg[ind], sfile->hdr->nfacets-ind, &l);
 	printf("hole facets %d\n", sfile->hdr->nfacets-ind);
+	printf("hole segments %d\n", nl);
 
 	extrude_border(l, nl, &sfile->trg[ind], sfile->hdr->nfacets-ind);
+	save_remainder(sfile->trg, ind);
 
 	for(int i=0; i<nl; i++)
 		print_line(&l[i]);
