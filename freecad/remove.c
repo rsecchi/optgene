@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define THRS 3.99
+#define THRS 3.5
 
 struct stl_hdr {
 	char  text[80];
@@ -44,8 +44,9 @@ void parse_cl(int argc, char* argv[])
 	FILE* infile;
 	int i;
 
-	if (argc<2) {
-		fprintf(stderr, "usage: %s <stl_file>\n", argv[0]);
+	if (argc<3) {
+		fprintf(stderr, "usage: %s <stl_infile>"
+			"<stl_outfile>\n", argv[0]);
 		exit(1);
 	}
 
@@ -53,7 +54,14 @@ void parse_cl(int argc, char* argv[])
 		
 	infile = fopen(argv[1],"r");	
 	if (!infile) {
-		fprintf(stderr, "%s: %s not found\n", argv[0], argv[i+1]);
+		fprintf(stderr, "%s: %s not found\n", argv[0], argv[1]);
+		exit(1);
+	}
+
+	outfile = fopen(argv[2], "w");
+	if (outfile == NULL) {
+		fprintf(stderr, "%s: Cannot open %s for writing\n", 
+			argv[0], argv[2]);
 		exit(1);
 	}
 
@@ -86,18 +94,12 @@ void parse_cl(int argc, char* argv[])
 		exit(1);
 	}	
 	
-	outfile = fopen("/tmp/unboxed.stl", "w");
-	if (outfile == NULL) {
-		fprintf(stderr, "%s: Cannot open out.ps for writing\n", 
-			argv[0]);
-		exit(1);
-	}
 }
 
 void remove_top()
 {
 triangle* w = sfile->trg;
-int i, nf;
+int i, nf, tot=0;
 	nf = sfile->hdr->nfacets;
 	for(i=0; i<nf; i++) 
 	{
@@ -105,12 +107,13 @@ int i, nf;
 		    w[i].v2[2] > THRS ||
 		    w[i].v3[2] > THRS)
 		{
+			tot++;
 			memcpy(&w[i], &w[nf-1], sizeof(triangle));
 			nf--;
 			i--;
 		}
 	}
-	nf = sfile->hdr->nfacets;
+	sfile->hdr->nfacets = nf;
 
 	fwrite(sfile->hdr, sizeof(struct stl_hdr), 1, outfile);
 	fwrite(sfile->trg, sizeof(triangle), nf, outfile);

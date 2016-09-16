@@ -44,3 +44,7 @@ cp generatore.html $WWWPATH
 
 #copy binaries
 cp split $BINPATH/stl_split
+cp remove $BINPATH/stl_remove
+cp border $BINPATH/stl_border
+cp stljoin $BINPATH/stl_join
+

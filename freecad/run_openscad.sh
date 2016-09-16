@@ -20,8 +20,10 @@ TMP_OUT=$(tempfile --suffix .stl)
 TMP_OBJ=$(basename $TMP_OUT .stl)
 TMP_BIN_OUT=$(tempfile --prefix bin_ --suffix .stl)
 TMP_SCAD=$(tempfile  --suffix .scad)
+TMP_REM=$(tempfile --suffix .stl)
 
-trap "rm -f ${TMP_OUT} ${TMP_SCAD} ${FILELOCK} ${TMP_BIN_OUT}" EXIT
+
+trap "rm -f ${TMP_OUT} ${TMP_SCAD} ${FILELOCK} ${TMP_BIN_OUT} ${TMP_REM}" EXIT
 
 
 ############ SPLIT SOLID   ####################
@@ -54,13 +56,15 @@ difference() {
 openscad $TMP_SCAD -o $TMP_OUT 
 $CGIPATH/exportbin.py $TMP_OUT $TMP_BIN_OUT $TMP_OBJ
 
+/usr/local/bin/stl_remove $TMP_BIN_OUT $TMP_REM
+/usr/local/bin/stl_join $TMP_REM /tmp/stlout_remain.stl /tmp/ooo.stl >> /tmp/cize
+
+cp $TMP_REM /tmp/lid.stl
 
 ############## UPDATE OUTPOUT ###################
 
 
-
-
-mv $TMP_BIN_OUT /var/www/html/out_stl/${OUTNAME}
+admesh /tmp/ooo.stl -b /var/www/html/out_stl/${OUTNAME}
 
 
 END=$(date +%s)
@@ -68,7 +72,7 @@ END=$(date +%s)
 	echo "<p>${OUTNAME}  "
 	echo $((END-START)) | awk '{print int($1/60)":"int($1%60)}';
 	echo "</p>"
-} >> /var/www/html/out_stl/times.html
+} >> /var/www/html/out_stl/time.html
 
 
 
