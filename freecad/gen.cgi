@@ -11,12 +11,7 @@ FILENAME=$( echo $QUERY_STRING | sed 's/.*filename=\(.*\)$/\1/' )
 DESIGNER=$( echo $QUERY_STRING | sed 's/.*designer=\(.*\)&.*$/\1/' )
 
 
-CODE1=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 2 | head -n 1)
-CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
-
-
 FILE=$STLPATH/$DESIGNER/$FILENAME
-OUTNAME=${DESIGNER}_$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
 
 
 if [ ! -f $FILE ]; then
@@ -26,6 +21,10 @@ if [ ! -f $FILE ]; then
 	exit 
 fi
 
+CODE1=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 2 | head -n 1)
+CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
+
+OUTNAME=${DESIGNER}_$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
 
 ############## RUN OPENSCAD ###############
 
