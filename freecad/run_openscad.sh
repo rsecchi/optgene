@@ -1,6 +1,10 @@
 #!/bin/bash
 
 
+# Detach from the web server (closing stdout)
+exec 1>&-
+
+
 # Only one instance at a time
 FILELOCK=/tmp/wedo.lock
 lockfile -r 1 ${FILELOCK}
@@ -8,8 +12,6 @@ lockfile -r 1 ${FILELOCK}
 START=$(date +%s)
 
 
-# Detach from the web server (closing stdout)
-exec 1>&-
 
 export OPENSCADPATH=/usr/lib/cgi-bin
 
