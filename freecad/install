@@ -40,6 +40,7 @@ cp run_openscad.sh $CGIPATH
 # copy WWWs
 cp form_test.html $WWWPATH
 cp generatore.html $WWWPATH
+cp genera_list.html $WWWPATH
 
 
 #copy binaries
@@ -47,4 +48,5 @@ cp split $BINPATH/stl_split
 cp remove $BINPATH/stl_remove
 cp border $BINPATH/stl_border
 cp stljoin $BINPATH/stl_join
+cp makecode $BINPATH/stl_makecode
 

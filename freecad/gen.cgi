@@ -17,12 +17,18 @@ FILE=$STLPATH/$DESIGNER/$FILENAME
 if [ ! -f $FILE ]; then
 	echo "Content-type: text/html"
 	echo
+	cat /var/www/html/genera_list.html
 	echo "<p>Error: $FILE not found</p>"
+	echo "</body>"
+	echo "</html>"
 	exit 
 fi
 
-CODE1=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 2 | head -n 1)
-CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
+#CODE1=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 2 | head -n 1)
+#CODE2=$(cat /dev/urandom | tr -dc 'A-Z0-9' | fold -w 3 | head -n 1)
+
+CODE1=$(/usr/local/bin/stl_makecode 2)
+CODE2=$(/usr/local/bin/stl_makecode 3)
 
 OUTNAME=${DESIGNER}_$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
 
@@ -37,8 +43,9 @@ $CGIPATH/run_openscad.sh &
 
 echo "Content-type: text/html"
 echo
+cat /var/www/html/genera_list.html
 echo "<p>Please wait!</p>"
 echo "<p>The file name is ${OUTNAME}</p>"
 echo "<p>The file will be placed in out_stl</p>"
-
-
+echo "</body>"
+echo "</html>"
