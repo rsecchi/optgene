@@ -46,6 +46,8 @@ echo
 cat /var/www/html/genera_list.html
 echo "<p>Please wait!</p>"
 echo "<p>The file name is ${OUTNAME}</p>"
-echo "<p>The file will be placed in out_stl</p>"
+echo "<p>The file will be placed in "
+echo "<a href=\"http://137.74.161.44/out_stl\">"
+echo "out_stl</a></p>"
 echo "</body>"
 echo "</html>"
