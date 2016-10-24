@@ -31,10 +31,12 @@ cp cubotest.stl $STLPATH
 # copy CGIs
 cp genstl.cgi $CGIPATH
 cp gen.cgi $CGIPATH
+cp gen2.cgi $CGIPATH
 cp Letters.dxf $CGIPATH
 cp Write.scad $CGIPATH
 cp exportbin.py $CGIPATH
 cp run_openscad.sh $CGIPATH
+cp run_openscad2.sh $CGIPATH
 
 
 # copy WWWs

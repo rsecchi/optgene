@@ -1,2 +1,2 @@
-0 * * * * find /var/www/html/out_stl/*.stl -mmin +1440 -delete 
+0 * * * * find /var/www/html/out_stl/*.stl -mmin +120 -delete 
 
