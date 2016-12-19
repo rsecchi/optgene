@@ -37,7 +37,9 @@ int main(int argc, char *argv[])
 	fclose(cs);
 
 	for(i=0; i<l; i++) {
-		c = random()%('Z'-'A') + 'A'; 
+		do {
+			c = random()%('Z'-'0') + '0'; 
+		} while ( c == 'W' || c == 'M' || c == 'Q' || (c<'A' && c>'9'));
 		printf("%c", c);
 	}
 

@@ -42,13 +42,13 @@ difference() {
 	difference() {
 		difference() {
 			import_stl(\"/tmp/stlout_fixed.stl\", 4);
-			translate([-0.75, 3.2, 0])
+			translate([-1.2, 3.2, 0])
 			mirror([1,0,0])
-			write(\"$CODE1\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
+			write(\"$CODE1\",t=2.4,h=4.4,center=true,space=1.7,bold=0.95);
 		}
-		translate([-0.75, -3.2, 0])
+		translate([-0.8, -3.2, 0])
 		mirror([1,0,0])
-		write(\"$CODE2\",t=2,h=4.6,center=true,space=1.5,bold=1.15);
+		write(\"$CODE2\",t=2.4,h=4.4,center=true,space=1.7,bold=0.95);
 	}
 	translate([0, 0, -0.5])
 	import_stl(\"/var/www/stl/logo.stl\", 4);
