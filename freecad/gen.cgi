@@ -2,14 +2,31 @@
 
 ############### PARSE ARGS ################
 
+lockfile -r 22 /tmp/wedo.lock
+
 set -a
 
-STLPATH=/var/www/stl
+STLPATH=/var/www/stl/
 CGIPATH=/usr/lib/cgi-bin
 OUTPATH=${STLPATH}/
-FILENAME=$( echo $QUERY_STRING | sed 's/.*filename=\(.*\)$/\1/' )
-DESIGNER=$( echo $QUERY_STRING | sed 's/.*designer=\(.*\)&.*$/\1/' )
+#FILENAME=$( echo $QUERY_STRING | sed 's/.*filename=\(.*\)$/\1/' )
+#DESIGNER=$( echo $QUERY_STRING | sed 's/.*designer=\(.*\)&.*$/\1/' )
 
+#ORDINE=$( echo $QUERY_STRING | sed 's/.*ordine=\(.*\)$/\1/' )
+#PRODOTTO=$( echo $QUERY_STRING | sed 's/.*prodotto=\(.*\)$/\1/' )
+#CODICE=$( echo $QUERY_STRING | sed 's/.*codice=\(.*\)&.*$/\1/' )
+
+saveIFS=$IFS
+IFS='=&'
+parm=($QUERY_STRING)
+IFS=$saveIFS
+
+CODICE=${parm[1]}
+ORDINE=${parm[3]}
+PRODOTTO=${parm[5]}
+
+DESIGNER=repos
+FILENAME=$(echo $CODICE).stl
 
 FILE=$STLPATH/$DESIGNER/$FILENAME
 
@@ -30,7 +47,7 @@ fi
 CODE1=$(/usr/local/bin/stl_makecode 2)
 CODE2=$(/usr/local/bin/stl_makecode 3)
 
-OUTNAME=${DESIGNER}_$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
+OUTNAME=$(basename $FILENAME .stl)_${CODE1}${CODE2}.stl
 
 ############## RUN OPENSCAD ###############
 

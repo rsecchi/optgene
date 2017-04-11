@@ -6,8 +6,8 @@ exec 1>&-
 
 
 # Only one instance at a time
-FILELOCK=/tmp/wedo.lock
-lockfile -r 1 ${FILELOCK}
+#FILELOCK=/tmp/wedo.lock
+#lockfile -r 1 ${FILELOCK}
 
 START=$(date +%s)
 
@@ -25,7 +25,7 @@ TMP_SCAD=$(tempfile  --suffix .scad)
 TMP_REM=$(tempfile --suffix .stl)
 
 
-trap "rm -f ${TMP_OUT} ${TMP_SCAD} ${FILELOCK} ${TMP_BIN_OUT} ${TMP_REM}" EXIT
+trap "rm -f ${TMP_OUT} ${TMP_SCAD} /tmp/wedo.lock  ${TMP_BIN_OUT} ${TMP_REM}" EXIT
 
 
 ############ SPLIT SOLID   ####################
@@ -67,14 +67,15 @@ cp $TMP_REM /tmp/lid.stl
 
 
 admesh /tmp/ooo.stl -b /var/www/html/out_stl/${OUTNAME}
-
+cd /var/www/html/out_stl/
+wget "http://www.wedesignyoudo.com/?filename=${CODICE}&ordine=${ORDINE}&code=${CODE1}${CODE2}&prodotto=${PRODOTTO}"
 
 END=$(date +%s)
 {
 	echo "<p>${OUTNAME}  "
 	echo $((END-START)) | awk '{print int($1/60)":"int($1%60)}';
 	echo "</p>"
+	echo "<p>http://www.wedesignyoudo.com/?filename=${CODICE}&ordine=${ORDINE}&code=${CODE1}${CODE2}&prodotto=${PRODOTTO}</p>"
 } >> /var/www/html/out_stl/time.html
 
-
-
+rm -f /tmp/wedo.lock

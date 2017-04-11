@@ -6,8 +6,8 @@ exec 1>&-
 
 
 # Only one instance at a time
-FILELOCK=/tmp/wedo.lock
-lockfile -r 1 ${FILELOCK}
+#FILELOCK=/tmp/wedo.lock
+#lockfile -r 1 ${FILELOCK}
 
 START=$(date +%s)
 
@@ -25,7 +25,7 @@ TMP_SCAD=$(tempfile  --suffix .scad)
 TMP_REM=$(tempfile --suffix .stl)
 
 
-trap "rm -f ${TMP_OUT} ${TMP_SCAD} ${FILELOCK} ${TMP_BIN_OUT} ${TMP_REM}" EXIT
+trap "rm -f ${TMP_OUT} ${TMP_SCAD} /tmp/wedo.lock ${TMP_BIN_OUT} ${TMP_REM}" EXIT
 
 
 ############ SPLIT SOLID   ####################
@@ -51,7 +51,7 @@ difference() {
 		write(\"$CODE2\",t=2,h=$high,center=true,space=$space,bold=$bold);
 	}
 	translate([0, 0, -0.5])
-	import_stl(\"/var/www/stl/logo.stl\", 4);
+	import_stl(\"/var/www/stl/logotest.stl\", 4);
 }
 " > $TMP_SCAD
 
@@ -66,7 +66,7 @@ cp $TMP_REM /tmp/lid.stl
 ############## UPDATE OUTPOUT ###################
 
 
-admesh /tmp/ooo.stl -b /var/www/html/out_stl/${OUTNAME}
+admesh /tmp/ooo.stl -b /var/www/html/test_stl/${OUTNAME}
 
 
 END=$(date +%s)
@@ -74,7 +74,7 @@ END=$(date +%s)
 	echo "<p>${OUTNAME}  "
 	echo $((END-START)) | awk '{print int($1/60)":"int($1%60)}';
 	echo "</p>"
-} >> /var/www/html/out_stl/time.html
+} >> /var/www/html/test_stl/time.html
 
 
 
