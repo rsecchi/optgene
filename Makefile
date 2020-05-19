@@ -1,14 +1,17 @@
 
 OUT=opt
 
-SRC= parse.c main.c opt_bf.c cmdline.c proc.c
+SRC= parse.c main.c opt.c cmdline.c proc.c
 OBJ= $(SRC:.c=.o)
 
-CFLAGS= -g -O2 -Wall
+CFLAGS= -g -O0 -Wall
 LDFLAGS= -g
 
 $(OUT): $(OBJ)
 	$(CC) $(LDFLAGS) $(OBJ) -o $@
+
+plotc: plot_circuit.o
+	$(CC) $(LDFLAGS) $^ -o $@
 
 .c.o:
 	$(CC) -c $(CFLAGS) $< -o $@

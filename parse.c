@@ -69,7 +69,7 @@ void makeinst(char *s, FILE * fp, FILE * out)
 				i++;
 			} else {
 				fprintf(out, "%%");
-				// printf("%%");
+				printf("%%");
 				if (c != '%') {
 					fprintf(out, "%c", (char) rc);
 					// printf("%c", (char) rc);

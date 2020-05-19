@@ -65,6 +65,7 @@ void opt_init()
 {
 	int i;
 	genesize = parse(script);
+
 	for (i = 0; i < POP_SIZE; i++)
 		pool[i] = randomgene();
 

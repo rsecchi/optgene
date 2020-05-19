@@ -35,7 +35,7 @@ double eval(char *s)
 	}
 
 	makeinst(s, script, testfile);
-	chmod(testname, S_IXUSR);
+	chmod(testname, S_IXUSR | S_IRUSR);
 	fclose(testfile);
 
 	if (!fork()) {
