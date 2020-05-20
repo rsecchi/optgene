@@ -1,3 +1,8 @@
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <stdlib.h>
 #include <limits.h>
 #include "opt.h"
@@ -78,7 +83,7 @@ void opt_run()
 	double best;
 	int generation = 0;
 	int randt = RAND_MAX / 20;
-	FILE *pbest;
+	int pbest;
 
 	genesize = parse(script);
 	best = -3000;
@@ -90,10 +95,10 @@ void opt_run()
 		for (i = 0; i < POP_SIZE; i++) {
 			rate[i] = eval(pool[i]);
 			if (best < rate[i]) {
-				pbest = fopen("opt.best", "w");
+				pbest = open("opt.best", O_WRONLY);
 				makeinst(pool[i], script, pbest);
 				best = rate[i];
-				fclose(pbest);
+				close(pbest);
 				printf("%lf\n", best);
 			}
 		}

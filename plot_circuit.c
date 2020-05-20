@@ -37,7 +37,7 @@ void set_hlines()
 	int i, j, pos, m;
 
 	for(i=0; i<lvl; i++) {
-			minl[i] = cind; 
+			minl[i] = 2*cind+1; 
 			maxl[i] = 0;
 	}
 
@@ -49,6 +49,7 @@ void set_hlines()
 			m = cmp[i].node[j];
 			if (minl[m] > pos) minl[m] = pos;
 			if (maxl[m] < pos) maxl[m] = pos; 
+
 		}
 	}
 	
@@ -87,8 +88,8 @@ void untangle()
 	int count = count_crossings();
 
 	// exchange levels
-	for(i=1; i<lvl-1; i++)
-		for(j=0; j<lvl-1; j++)
+	for(i=2; i<lvl; i++)
+		for(j=2; j<lvl; j++)
 			if (i!=j){
 				// TBD
 				swap(&level[i], &level[j]);
@@ -246,6 +247,26 @@ void print_circuit()
 	}	
 
 	printf("stroke\n");
+
+	// input 
+	printf("/Times-Roman findfont\n");
+	printf("12 scalefont\n");
+	printf("setfont\n");
+	printf("newpath\n");
+	printf("%d %d moveto\n", minl[1]*COLS+XMIN, level[1]*ROWS+ROWS/10+YMIN);
+	printf("(Vcc) show\n");
+	printf("%d %d moveto\n", minl[0]*COLS+XMIN, (level[0]-1)*ROWS+ROWS/2+YMIN);
+	printf("(GND) show\n");
+	printf("%d %d moveto\n", minl[2]*COLS+XMIN, level[2]*ROWS+ROWS/10+YMIN);
+	printf("(Vin) show\n");
+	printf("%d %d moveto\n", maxl[3]*COLS+XMIN, level[3]*ROWS+ROWS/10+YMIN);
+	printf("(Vout) show\n");
+
+	for(i=4; i<lvl; i++) {
+		printf("%d %d moveto\n", maxl[i]*COLS+XMIN, level[i]*ROWS+ROWS/10+YMIN);
+		printf("(%d) show\n", i);
+	}
+
 
 }
 

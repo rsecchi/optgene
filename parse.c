@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "opt.h"
@@ -49,11 +50,12 @@ int parse(FILE * fp)
 	return count;
 }
 
-void makeinst(char *s, FILE * fp, FILE * out)
+void makeinst(char *s, FILE * fp, int out)
 {
 
-	int rc, i = 0;
-	char c;
+	int rc, i = 0, j, n;
+	char c, buf, tmp[8];
+
 	rewind(fp);
 
 	/* count the tags */
@@ -64,20 +66,19 @@ void makeinst(char *s, FILE * fp, FILE * out)
 			c = (char) rc;
 			if (rc > 48 && rc <= 56) {
 				// found a tag
-				fprintf(out, "%u", s[i] & 0xFF);
-				// printf("%u", s[i] & 0xFF);
+				n = sprintf(tmp, "%u", s[i] & 0xFF);
+				for(j=0; j<n; j++)
+					write(out, &tmp[j], 1);
 				i++;
 			} else {
-				fprintf(out, "%%");
-				printf("%%");
+				buf = '%';
+				write(out, &buf, 1);
 				if (c != '%') {
-					fprintf(out, "%c", (char) rc);
-					// printf("%c", (char) rc);
+					write(out, &c, 1);
 				}
 			}
 		} else {
-			fprintf(out, "%c", c);
-			// printf("%c", c);
+			write(out, &c, 1);
 		}
 	}
 
