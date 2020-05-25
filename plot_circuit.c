@@ -109,7 +109,6 @@ int untangle()
 
 		for(j=2; j<=max_index; j++)
 			if (i!=j && level[j]!=0 && level[j]!=lvl){
-				// TBD
 				swap(&level[i], &level[j]);
 				set_hlines();
 				pcount = count_crossings();
@@ -124,9 +123,11 @@ int untangle()
 	}
 
 	// exchange components
-	for(i=0; i<cind; i++)
-		for(j=0; j<cind; j++)
-			if (i!=j){
+	for(i=0; i<cind; i++) {
+		if (cmp[i].type == 'v')
+			continue;
+		for(j=0; j<cind; j++) {
+			if (i!=j && cmp[j].type != 'v'){
 				swap(&cmp[i].pos, &cmp[j].pos);
 				set_hlines();
 				pcount = count_crossings();
@@ -138,6 +139,8 @@ int untangle()
 					set_hlines();
 				}
 			}
+		}
+	}
 
 	return swaps;
 }
@@ -252,7 +255,7 @@ void parse_circuit()
 
 }
 
-void print_circuit()
+void print_circuit_ps()
 {
 	int i;
 	int xc, y0, y1, ym, ye, yt, y2;
@@ -287,6 +290,13 @@ void print_circuit()
 					printf("%d %d lineto\n", xc+COLS_PS/3, ym+ROWS_PS-ROWS_PS/5);
 					printf("%d %d lineto\n", xc-COLS_PS/3, ym+ROWS_PS-ROWS_PS/5);
 					printf("%d %d lineto\n", xc-COLS_PS/3, ym+ROWS_PS/5);
+			}
+
+			if (cmp[i].type=='v') {
+					printf("%d %d moveto\n", 
+						xc+3*ROWS_PS/10, ym+ROWS_PS/2);
+					printf("%d %d %d 0 3600 arc\n", 
+						xc, ym+ROWS_PS/2, 3*ROWS_PS/10);
 			}
 
 		} else {
@@ -364,7 +374,7 @@ void print_circuit()
 	}
 }
 
-void print_asc()
+void print_circuit_asc()
 {
 	int i;
 	int xc, y0, y1, ym, ye, y2;
@@ -404,7 +414,7 @@ void print_asc()
 			else 
 				printf("SYMBOL npn %d %d R0\n", xc-COLS/2, ym-96-ROWS/5);
 			printf("SYMATTR InstName Q%d\n", i);
-			printf("SYMATTR Value 2N3904\n");
+			printf("SYMATTR Value mod1 \n");
 
 			// base wire
 			printf("WIRE %d %d %d %d\n", 
@@ -431,6 +441,10 @@ void print_asc()
 		}
 	}	
 
+	printf("FLAG %d %d 0\n", minl[0]*COLS, -level[0]*ROWS+32);
+	printf("WIRE %d %d %d %d\n", minl[0]*COLS, -level[0]*ROWS+32, 
+								 minl[0]*COLS, -level[0]*ROWS);
+
 }
 
 int main(int argc, char* argv[])
@@ -447,6 +461,6 @@ int main(int argc, char* argv[])
 	while(untangle());
 	width = compact();
 	fprintf(stderr, "%d\n", width);
-	print_circuit();
+	print_circuit_asc();
 }
 
