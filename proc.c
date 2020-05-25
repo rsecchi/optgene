@@ -5,6 +5,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <semaphore.h>
 
 #include "parse.h"
 #include "opt.h"
@@ -13,6 +14,9 @@
 int testno;
 int testfd;
 
+sem_t sync_eval;
+int running;
+
 double eval(char *s)
 {
 	int status = 0;
@@ -20,6 +24,7 @@ double eval(char *s)
 	char tempfname[] = "tempXXXXXX";
 	int com[2];
 	int rd;
+
 
 	if (pipe(com)) {
 		fprintf(stderr, "cannot open pipe for reading\n");
@@ -43,7 +48,7 @@ double eval(char *s)
 		close(com[0]);
 
 		dup2(com[1], STDOUT_FILENO);
-		if (system(tempfname)) 
+		if (system(tempfname))
 			fprintf(stderr, "could not execute %s\n",
 				tempfname);
 		exit(0);
@@ -59,6 +64,9 @@ double eval(char *s)
 	if (remove(tempfname))
 		fprintf(stderr, "could not remove %s\n", 
 			tempfname);
+
+	if (!running)
+		exit(0);
 
 	return atof(buf);
 }
