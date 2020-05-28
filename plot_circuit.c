@@ -16,7 +16,7 @@
 #define YMIN      96
 
 FILE* fp;
-char filename[] = "opt2.cir";
+char filename[] = "opt4.cir";
 
 int cind;			// index of elem
 struct {
@@ -414,7 +414,7 @@ void print_circuit_asc()
 			else 
 				printf("SYMBOL npn %d %d R0\n", xc-COLS/2, ym-96-ROWS/5);
 			printf("SYMATTR InstName Q%d\n", i);
-			printf("SYMATTR Value mod1 \n");
+			printf("SYMATTR Value 2N3904\n");
 
 			// base wire
 			printf("WIRE %d %d %d %d\n", 
@@ -461,6 +461,6 @@ int main(int argc, char* argv[])
 	while(untangle());
 	width = compact();
 	fprintf(stderr, "%d\n", width);
-	print_circuit_asc();
+	print_circuit_ps();
 }
 

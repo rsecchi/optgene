@@ -11,15 +11,14 @@
 #include "opt.h"
 #include "cmdline.h"
 
-int testno;
-int testfd;
-
-sem_t sync_eval;
 int running;
 
 double eval(char *s)
 {
+	int testfd;
+
 	int status = 0;
+
 	char buf[256];
 	char tempfname[] = "tempXXXXXX";
 	int com[2];

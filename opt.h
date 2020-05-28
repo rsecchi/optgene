@@ -3,10 +3,13 @@
 #include <signal.h>
 #include <stdint.h>
 
-#define POP_SIZE         1000
+/* POP_SIZE must be a multiple of 4 */
+#define POP_SIZE          100    
 #define PERC_RECOMB        20
-#define PERC_MUTAT          5
+#define PERC_MUTAT         10
 
+
+#define SEGSIZE       (POP_SIZE/4)
 #define RECOMB       ((PERC_RECOMB*POP_SIZE)/100)
 #define MUTAT        ((PERC_MUTAT*POP_SIZE)/100)
 #define RATED		     0x01

@@ -19,8 +19,6 @@ int main(int argc, char *argv[])
 
 	struct timeval randtime;
 
-	sem_init(&sync_eval, 0, 1);
-
 	cmdline(argc, argv);
 	signal(SIGINT, end_opt);
 
