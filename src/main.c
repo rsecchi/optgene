@@ -1,6 +1,9 @@
 #include "opt.h"
 
-FILE *script;
+int script_fd;
+char* script;
+size_t scr_size;
+
 char default_script[] = "input.opt";
 
 static void help(char *exename)
@@ -26,6 +29,7 @@ static void help(char *exename)
 void cmdline(int argc, char *argv[])
 {
 	char *sname;
+	struct stat s;
 
 	if (argc > 2) {
 		help(argv[0]);
@@ -48,21 +52,36 @@ void cmdline(int argc, char *argv[])
 		}
 		sname = argv[1];
 	}
-	script = fopen(sname, "r");
+	script_fd = open(sname, O_RDONLY);
 
-	if (!script) {
+	if (!script_fd) {
 		fprintf(stderr, "%s: %s cannot be opened for reading\n",
 			argv[0], sname);
 		exit(1);
 	}
+
+	// memory map script
+	if(fstat(script_fd, &s)<0) {
+		fprintf(stderr, "%s: %s cannot access attr\n", argv[0], sname);
+		exit(1);
+	}
+
+	scr_size = s.st_size;
+	script = mmap(NULL, scr_size, PROT_READ, MAP_PRIVATE, script_fd, 0);
+
+	if (script == MAP_FAILED) {
+		fprintf(stderr, "%s: %s cannot map mem\n", argv[0], sname);
+		exit(1);
+	}
+
 }
+
 int main(int argc, char *argv[])
 {
 	fprintf(stderr, "Params in opt.h\n");
 	fprintf(stderr, "population size: %d\n", POP_SIZE);
 	fprintf(stderr, "recombination rate: %d%%\n", PERC_RECOMB);
 	fprintf(stderr, "mutation rate: %d%%\n", PERC_MUTAT);
-
 
 	struct timeval randtime;
 
@@ -74,6 +93,7 @@ int main(int argc, char *argv[])
 
 	opt_init();
 	opt_run();
+
 
 	return 0;
 }

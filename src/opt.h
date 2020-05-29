@@ -11,15 +11,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 
 
 /* POP_SIZE must be a multiple of 4 */
-#define POP_SIZE          100    
+#define POP_SIZE         1000 
 #define PERC_RECOMB        20
 #define PERC_MUTAT         10
+#define NT                  8
 
 
-#define SEGSIZE       (POP_SIZE/4)
+#define SEGSIZE       (POP_SIZE/NT)
 #define RECOMB       ((PERC_RECOMB*POP_SIZE)/100)
 #define MUTAT        ((PERC_MUTAT*POP_SIZE)/100)
 #define RATED		     0x01
@@ -31,7 +33,8 @@ extern FILE *testfile;
 extern char *testname;
 extern int running;
 
-extern FILE *script;
+extern char *script;
+extern size_t scr_size;
 
 void cmdline(int argc, char *argv[]);
 
@@ -52,8 +55,9 @@ void end_opt(int);
 
 extern int size;
 
-int parse(FILE *);
-void makeinst(char *, FILE *, int);
+int parse(char *);
+void makeinst(char *, char*, int);
 
+extern pthread_mutex_t eval_mutex;
 
 #endif

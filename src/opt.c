@@ -8,7 +8,7 @@ int *tmpl;
 
 double best;
 int generation;
-pthread_t t_eval[4];
+pthread_t t_eval[NT];
 pthread_mutex_t best_mutex;
 
 void print_gene(char* s)
@@ -76,6 +76,7 @@ void opt_init()
 		tpool[i].string = malloc(genesize);
 		tpool[i].flags = 0;
 	}
+
 }
 
 void* eval_seg(void* arg)
@@ -113,11 +114,14 @@ void opt_run()
 	struct timeval t_start, now; 
 	struct gene* seg;
 
-	genesize = parse(script);
+	if (!genesize)
+		genesize = parse(script);
+
 	best = -3000;
 	gettimeofday(&t_start, NULL);
 
 	pthread_mutex_init(&best_mutex, NULL);
+	pthread_mutex_init(&eval_mutex, NULL);
 
 	while (1) {
 		generation++;
@@ -125,12 +129,12 @@ void opt_run()
 		running = 1;
 		
 		seg = pool;
-		for(i=0; i<2; i++) {
+		for(i=0; i<NT; i++) {
 			pthread_create(&t_eval[i], NULL, eval_seg, seg);
 			seg += SEGSIZE;
 		}
 
-		for(i=0; i<2; i++)
+		for(i=0; i<NT; i++)
 			pthread_join(t_eval[i], NULL);			
 
 		/* Rate the population */
@@ -171,7 +175,6 @@ void opt_run()
 				j++;
 			}
 		}
-
 
 		for(i=0; i<MUTAT; i++) {
 			n1 = random() % POP_SIZE;
