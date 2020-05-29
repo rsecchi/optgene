@@ -1,18 +1,4 @@
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/time.h>
-
-#include <stdlib.h>
-#include <limits.h>
-#include <pthread.h>
-#include <semaphore.h>
 #include "opt.h"
-#include "parse.h"
-#include "cmdline.h"
-#include "proc.h"
-
 
 int genesize;
 

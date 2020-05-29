@@ -1,7 +1,7 @@
 
 OUT=opt
 
-SRC= parse.c main.c opt.c cmdline.c proc.c
+SRC= src/main.c src/opt.c src/proc.c
 OBJ= $(SRC:.c=.o)
 
 CFLAGS= -g -O0 -Wall 
@@ -17,7 +17,7 @@ plotc: plot_circuit.o
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o *~
+	rm -rf ${OBJ} *~
 
 indent:
 	indent -kr -i8 *.c *.h
