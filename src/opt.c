@@ -1,5 +1,12 @@
 #include "opt.h"
 
+struct tctx {
+	struct gene* seg;
+	int evals;
+	int tnum;
+	double time_per_eval;
+} thread_ctx[NT];
+
 int genesize;
 
 struct gene pool[POP_SIZE];
@@ -79,30 +86,43 @@ void opt_init()
 
 }
 
-void* eval_seg(void* arg)
+void* eval_seg(void* ctxp)
 {
 	int i;
 	int pbest;
-	struct gene* p = (struct gene*)arg;
+	int evals = 0;
+	struct gene* p = ((struct tctx*)ctxp)->seg;
+	struct timeval start, end;
 
+	gettimeofday(&start, NULL);
+	
 	for (i = 0; i < SEGSIZE; i++) {
-
+		
+		printf("best: %lf \n", best);
 		p[i].flags &= ~SELECTED;
 		if (!(p[i].flags & RATED)) {
 			p[i].flags |= RATED;
 			p[i].rate = eval(p[i].string);
+			evals++;
 		}
 		if (best < pool[i].rate) {
-			pthread_mutex_lock(&best_mutex);	
+			pthread_mutex_lock(&eval_mutex);	
 			pbest = open("opt.best", O_WRONLY);
 			makeinst(p[i].string, script, pbest);
 			best = pool[i].rate;
 			close(pbest);
 			printf("%lf\n", best);
-			pthread_mutex_unlock(&best_mutex);	
+			pthread_mutex_unlock(&eval_mutex);	
 		}
 	}
-	return NULL;
+
+	gettimeofday(&end, NULL);
+
+	((struct tctx*)ctxp)->time_per_eval = 
+		((double)(end.tv_sec - start.tv_sec))/evals;
+	((struct tctx*)ctxp)->evals = evals;
+
+	return ctxp;
 }
 
 
@@ -123,24 +143,32 @@ void opt_run()
 	pthread_mutex_init(&best_mutex, NULL);
 	pthread_mutex_init(&eval_mutex, NULL);
 
+	seg = pool;
+	for(i=0; i<NT; i++) {
+		thread_ctx[i].tnum = i;
+		thread_ctx[i].seg = seg;
+		seg += SEGSIZE;
+	}
+
 	while (1) {
 		generation++;
-
+	
+		/* Rate the population */
 		running = 1;
+		for(i=0; i<NT; i++)
+			pthread_create(&t_eval[i], NULL, eval_seg,
+				(void*)(&thread_ctx[i]));
 		
-		seg = pool;
-		for(i=0; i<NT; i++) {
-			pthread_create(&t_eval[i], NULL, eval_seg, seg);
-			seg += SEGSIZE;
-		}
-
 		for(i=0; i<NT; i++)
 			pthread_join(t_eval[i], NULL);			
 
-		/* Rate the population */
 		running = 0;
 
-		printf("%d eval\n", a);
+		/* print stats */
+		for(i=0; i<NT; i++)
+			printf("[thread %d] %d evals, t=%4.3lf\n", 
+				i, thread_ctx[i].evals,
+				thread_ctx[i].time_per_eval);
 
 		/* calcuate crossovers */
 		for(i=0; i<RECOMB; i++) {

@@ -20,7 +20,6 @@
 #define PERC_MUTAT         10
 #define NT                  8
 
-
 #define SEGSIZE       (POP_SIZE/NT)
 #define RECOMB       ((PERC_RECOMB*POP_SIZE)/100)
 #define MUTAT        ((PERC_MUTAT*POP_SIZE)/100)

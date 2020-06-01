@@ -103,29 +103,34 @@ double eval(char *s)
 
 	chmod(tempfname, S_IRUSR | S_IXUSR);
 	fsync(testfd);
+
+
 	close(testfd);
 	pthread_mutex_unlock(&eval_mutex);
-
 
 	pid = fork();
 	if (pid == 0) {
 		close(com[0]);
-
+		fprintf(stderr, "start\n");
 		dup2(com[1], STDOUT_FILENO);
 
 		if (system(tempfname))
 			fprintf(stderr, "could not execute %s\n",
 				tempfname);
+		fprintf(stderr, "done\n");
 		exit(0);
 	}
 
-	close(com[1]);
 	waitpid(pid, &status, 0);
+	
+	pthread_mutex_lock(&eval_mutex);
+	close(com[1]);
 
 	while ((rd = read(com[0], buf, 255)))
 		buf[rd] = '\0';
 
 	close(com[0]);
+
 	if (remove(tempfname))
 		fprintf(stderr, "could not remove %s\n", 
 			tempfname);
@@ -134,7 +139,7 @@ double eval(char *s)
 	if (!running)
 		exit(0);
 
-
+	pthread_mutex_unlock(&eval_mutex);
 	return atof(buf);
 }
 
