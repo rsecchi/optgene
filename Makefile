@@ -17,7 +17,7 @@ plotc: plot_circuit.o
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf ${OBJ} *~
+	rm -rf ${OBJ} *~ temp*
 
 indent:
 	indent -kr -i8 *.c *.h

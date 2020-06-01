@@ -1,11 +1,6 @@
 #include "opt.h"
 
-struct tctx {
-	struct gene* seg;
-	int evals;
-	int tnum;
-	double time_per_eval;
-} thread_ctx[NT];
+struct tctx thread_ctx[NT];
 
 int genesize;
 
@@ -13,7 +8,7 @@ struct gene pool[POP_SIZE];
 struct gene tpool[POP_SIZE];
 int *tmpl;
 
-double best;
+double bst;
 int generation;
 pthread_t t_eval[NT];
 pthread_mutex_t best_mutex;
@@ -83,7 +78,6 @@ void opt_init()
 		tpool[i].string = malloc(genesize);
 		tpool[i].flags = 0;
 	}
-
 }
 
 void* eval_seg(void* ctxp)
@@ -98,22 +92,23 @@ void* eval_seg(void* ctxp)
 	
 	for (i = 0; i < SEGSIZE; i++) {
 		
-		printf("best: %lf \n", best);
 		p[i].flags &= ~SELECTED;
 		if (!(p[i].flags & RATED)) {
 			p[i].flags |= RATED;
-			p[i].rate = eval(p[i].string);
+			p[i].rate = eval(p[i].string, (struct tctx*)ctxp);
 			evals++;
 		}
-		if (best < pool[i].rate) {
-			pthread_mutex_lock(&eval_mutex);	
+
+		pthread_mutex_lock(&eval_mutex);
+
+		if (bst < (p[i].rate)) {
 			pbest = open("opt.best", O_WRONLY);
 			makeinst(p[i].string, script, pbest);
-			best = pool[i].rate;
+			bst = p[i].rate;
+			fprintf(stderr, "new best = %lf\n", bst);
 			close(pbest);
-			printf("%lf\n", best);
-			pthread_mutex_unlock(&eval_mutex);	
 		}
+		pthread_mutex_unlock(&eval_mutex);	
 	}
 
 	gettimeofday(&end, NULL);
@@ -131,14 +126,15 @@ void opt_run()
 {
 	int i, j, a, b, n1, n2;
 	struct gene w;
-	struct timeval t_start, now; 
+	struct timeval t_start, now, prev_t; 
 	struct gene* seg;
 
 	if (!genesize)
 		genesize = parse(script);
 
-	best = -3000;
+	bst = -3000;
 	gettimeofday(&t_start, NULL);
+	prev_t = t_start;
 
 	pthread_mutex_init(&best_mutex, NULL);
 	pthread_mutex_init(&eval_mutex, NULL);
@@ -210,7 +206,9 @@ void opt_run()
 				pool[i].flags &= ~RATED;	
 		}
 		gettimeofday(&now, NULL);
-		printf("%d)= %lu best rate: %lf\n", 
-			generation, now.tv_sec - t_start.tv_sec, best);
+		printf("%d) t= %lu   delta= %lu best rate: %lf\n", 
+			generation, now.tv_sec - t_start.tv_sec, 
+				now.tv_sec - prev_t.tv_sec, bst);
+		prev_t = now;
 	}
 }

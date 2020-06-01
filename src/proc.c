@@ -72,19 +72,19 @@ void makeinst(char *s, char* fp, int out)
 
 }
 
-double eval(char *s)
+double eval(char *s, struct tctx* p)
 {
 	int testfd;
 	int pid;
 
-	int status = 0;
-
-	char buf[256];
+	char buf[256], *bp = buf;
 	char tempfname[] = "./tempXXXXXX";
 	int com[2];
 	int rd;
 
+	// fprintf(stderr, "T[%d] about to lock p1\n", p->tnum);
 	pthread_mutex_lock(&eval_mutex);
+	// fprintf(stderr, "T[%d] acquired lock p1\n", p->tnum);
 
 	if (pipe(com)) {
 		fprintf(stderr, "cannot open pipe for reading\n");
@@ -98,48 +98,71 @@ double eval(char *s)
 		exit(1);
 	}
 
-	// create a file to be evaluated
+	/* creating a file to be evaluated  */
 	makeinst(s, script, testfd);
 
 	chmod(tempfname, S_IRUSR | S_IXUSR);
 	fsync(testfd);
 
-
 	close(testfd);
-	pthread_mutex_unlock(&eval_mutex);
 
+	/* starting the evaluating process */
 	pid = fork();
 	if (pid == 0) {
 		close(com[0]);
-		fprintf(stderr, "start\n");
+		// fprintf(stderr, "start\n");
 		dup2(com[1], STDOUT_FILENO);
 
-		if (system(tempfname))
+		if (system(tempfname)) {
 			fprintf(stderr, "could not execute %s\n",
 				tempfname);
-		fprintf(stderr, "done\n");
+			exit(1);
+		}
+		// fprintf(stderr, "done\n");
 		exit(0);
 	}
 
-	waitpid(pid, &status, 0);
-	
-	pthread_mutex_lock(&eval_mutex);
 	close(com[1]);
+	pthread_mutex_unlock(&eval_mutex);
 
-	while ((rd = read(com[0], buf, 255)))
-		buf[rd] = '\0';
+	/* reading from pipe */
+	while ((rd = read(com[0], bp, 255)) != 0) {
+		if (rd < 0) {
+			fprintf(stderr, "error reading from pipe\n");
+			exit(1);
+		}
+		bp += rd;
+		if (bp - buf > 255) {
+			buf[255] = '\0';
+			fprintf(stderr, "message too long: %s\n", buf);
+		}
+	}
+	*bp = '\0';
+	//fprintf(stderr, "buf=%s\n",buf);
+
+	// fprintf(stderr, "T[%d] released lock p1\n", p->tnum);
+
+	// waitpid(pid, &status, 0);	
+
+	// fprintf(stderr, "T[%d] about to lock p2\n", p->tnum);
+	pthread_mutex_lock(&eval_mutex);
+	// fprintf(stderr, "T[%d] acquired lock p2\n", p->tnum);
 
 	close(com[0]);
 
-	if (remove(tempfname))
+	if (remove(tempfname)) {
 		fprintf(stderr, "could not remove %s\n", 
 			tempfname);
+		exit(1);
+	}
 	
+	// fprintf(stderr, "T[%d] after remove(tmpfname)\n", p->tnum);
 
 	if (!running)
 		exit(0);
 
 	pthread_mutex_unlock(&eval_mutex);
+	// fprintf(stderr, "T[%d] released lock p2\n", p->tnum);
 	return atof(buf);
 }
 

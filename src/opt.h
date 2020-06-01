@@ -18,7 +18,7 @@
 #define POP_SIZE         1000 
 #define PERC_RECOMB        20
 #define PERC_MUTAT         10
-#define NT                  8
+#define NT                  4
 
 #define SEGSIZE       (POP_SIZE/NT)
 #define RECOMB       ((PERC_RECOMB*POP_SIZE)/100)
@@ -26,8 +26,14 @@
 #define RATED		     0x01
 #define SELECTED	     0x02
 
+struct tctx {
+    struct gene* seg;
+    int evals;
+    int tnum;
+    double time_per_eval;
+};
 
-extern double eval(char *s);
+extern double eval(char *s, struct tctx*);
 extern FILE *testfile;
 extern char *testname;
 extern int running;
