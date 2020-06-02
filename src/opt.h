@@ -15,7 +15,7 @@
 
 
 /* POP_SIZE must be a multiple of 4 */
-#define POP_SIZE         1000 
+#define POP_SIZE         1000
 #define PERC_RECOMB        20
 #define PERC_MUTAT         10
 #define NT                  4

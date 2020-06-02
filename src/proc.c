@@ -103,8 +103,9 @@ double eval(char *s, struct tctx* p)
 
 	chmod(tempfname, S_IRUSR | S_IXUSR);
 	fsync(testfd);
-
 	close(testfd);
+
+	pthread_mutex_unlock(&eval_mutex);
 
 	/* starting the evaluating process */
 	pid = fork();
@@ -113,15 +114,15 @@ double eval(char *s, struct tctx* p)
 		// fprintf(stderr, "start\n");
 		dup2(com[1], STDOUT_FILENO);
 
-		if (system(tempfname)) {
+		while (system(tempfname)) {
 			fprintf(stderr, "could not execute %s\n",
 				tempfname);
-			exit(1);
 		}
 		// fprintf(stderr, "done\n");
 		exit(0);
 	}
 
+	pthread_mutex_lock(&eval_mutex);
 	close(com[1]);
 	pthread_mutex_unlock(&eval_mutex);
 
@@ -138,15 +139,10 @@ double eval(char *s, struct tctx* p)
 		}
 	}
 	*bp = '\0';
-	//fprintf(stderr, "buf=%s\n",buf);
 
-	// fprintf(stderr, "T[%d] released lock p1\n", p->tnum);
-
-	// waitpid(pid, &status, 0);	
-
-	// fprintf(stderr, "T[%d] about to lock p2\n", p->tnum);
 	pthread_mutex_lock(&eval_mutex);
-	// fprintf(stderr, "T[%d] acquired lock p2\n", p->tnum);
+	if (!running)
+		fprintf(stderr, "T[%d] actions not running No.1\n", p->tnum);
 
 	close(com[0]);
 
@@ -155,11 +151,17 @@ double eval(char *s, struct tctx* p)
 			tempfname);
 		exit(1);
 	}
+
+	if (!running)
+		fprintf(stderr, "t[%d] actions not running no.2\n", p->tnum);
 	
 	// fprintf(stderr, "T[%d] after remove(tmpfname)\n", p->tnum);
 
-	if (!running)
-		exit(0);
+	if (!running) {
+		fprintf(stderr, "T[%d] exiting here\n", p->tnum);
+		pthread_mutex_unlock(&eval_mutex);
+		pthread_exit(0);
+	}
 
 	pthread_mutex_unlock(&eval_mutex);
 	// fprintf(stderr, "T[%d] released lock p2\n", p->tnum);

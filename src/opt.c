@@ -5,13 +5,14 @@ struct tctx thread_ctx[NT];
 int genesize;
 
 struct gene pool[POP_SIZE];
+int pool_index;
 struct gene tpool[POP_SIZE];
 int *tmpl;
 
 double bst;
 int generation;
 pthread_t t_eval[NT];
-pthread_mutex_t best_mutex;
+pthread_mutex_t best_mutex, pool_mutex;
 
 void print_gene(char* s)
 {
@@ -57,11 +58,11 @@ void crossover(char *s1, char *s2, char* out)
 /* opt ends */
 void end_opt(int s)
 {
-	if (!running)
-		exit(0);
-
-	printf("STOP ============\n");
+	fprintf(stderr, "called end_opt\n");
+	pthread_mutex_lock(&eval_mutex);
 	running = 0;
+	pthread_mutex_unlock(&eval_mutex);
+
 }
 
 /* opt optimisation */
@@ -85,13 +86,35 @@ void* eval_seg(void* ctxp)
 	int i;
 	int pbest;
 	int evals = 0;
-	struct gene* p = ((struct tctx*)ctxp)->seg;
+	struct tctx* thread = (struct tctx*)ctxp;
+	struct gene* p = thread->seg;
 	struct timeval start, end;
+	sigset_t set;
+
+	sigemptyset(&set);
+	sigaddset(&set, SIGINT);
+	pthread_sigmask(SIG_BLOCK, &set, NULL);
 
 	gettimeofday(&start, NULL);
-	
-	for (i = 0; i < SEGSIZE; i++) {
+
+	while(1) {
+
+		pthread_mutex_lock(&pool_mutex);
+		// fprintf(stderr, "T[%d] index=%d\n", thread->tnum, pool_index);
+		if (pool_index>=POP_SIZE) {
 		
+			fprintf(stderr, "T[%d] exiting\n", thread->tnum);
+			gettimeofday(&end, NULL);
+			thread->time_per_eval = 
+				((double)(end.tv_sec - start.tv_sec))/evals;
+			thread->evals = evals;
+			pthread_mutex_unlock(&pool_mutex);
+			pthread_exit(NULL);
+		}
+		i = pool_index;
+		pool_index++;
+		pthread_mutex_unlock(&pool_mutex);
+			
 		p[i].flags &= ~SELECTED;
 		if (!(p[i].flags & RATED)) {
 			p[i].flags |= RATED;
@@ -100,23 +123,21 @@ void* eval_seg(void* ctxp)
 		}
 
 		pthread_mutex_lock(&eval_mutex);
-
 		if (bst < (p[i].rate)) {
-			pbest = open("opt.best", O_WRONLY);
+			pbest = open("opt.best", O_WRONLY | O_CREAT, 0600);
+			if (pbest<0) {
+				perror(NULL);
+				fprintf(stderr, "could not open opt.best\n");
+				exit(1);
+			}
 			makeinst(p[i].string, script, pbest);
 			bst = p[i].rate;
 			fprintf(stderr, "new best = %lf\n", bst);
 			close(pbest);
 		}
 		pthread_mutex_unlock(&eval_mutex);	
+
 	}
-
-	gettimeofday(&end, NULL);
-
-	((struct tctx*)ctxp)->time_per_eval = 
-		((double)(end.tv_sec - start.tv_sec))/evals;
-	((struct tctx*)ctxp)->evals = evals;
-
 	return ctxp;
 }
 
@@ -138,19 +159,27 @@ void opt_run()
 
 	pthread_mutex_init(&best_mutex, NULL);
 	pthread_mutex_init(&eval_mutex, NULL);
+	pthread_mutex_init(&pool_mutex, NULL);
 
 	seg = pool;
 	for(i=0; i<NT; i++) {
 		thread_ctx[i].tnum = i;
-		thread_ctx[i].seg = seg;
+		thread_ctx[i].seg = pool;
 		seg += SEGSIZE;
 	}
 
+	running = 1;
 	while (1) {
 		generation++;
 	
+		pthread_mutex_lock(&pool_mutex);	
+		pool_index = 0;
+		pthread_mutex_unlock(&pool_mutex);	
+
+		if (!running)
+			exit(0);
+
 		/* Rate the population */
-		running = 1;
 		for(i=0; i<NT; i++)
 			pthread_create(&t_eval[i], NULL, eval_seg,
 				(void*)(&thread_ctx[i]));
@@ -158,7 +187,9 @@ void opt_run()
 		for(i=0; i<NT; i++)
 			pthread_join(t_eval[i], NULL);			
 
-		running = 0;
+		if (!running)
+			exit(0);
+
 
 		/* print stats */
 		for(i=0; i<NT; i++)
