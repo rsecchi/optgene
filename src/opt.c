@@ -111,7 +111,6 @@ void* eval_seg(void* ctxp)
 			pthread_exit(NULL);
 		}
 		i = pool_index;
-		fprintf(stderr, "index=%d\n", pool_index);
 		pool_index++;
 		pthread_mutex_unlock(&pool_mutex);
 		
@@ -152,6 +151,14 @@ void opt_run()
 	struct gene w;
 	struct timeval t_start, now, prev_t; 
 	struct gene* seg;
+	FILE* plog;
+
+	plog = fopen("opt.log", "w");
+	if (plog<0) {
+		perror(NULL);
+		fprintf(stderr, "could not open opt.log\n");
+		exit(1);
+	}
 
 	if (!genesize)
 		genesize = parse(script);
@@ -174,13 +181,7 @@ void opt_run()
 	running = 1;
 	while (1) {
 		generation++;
-	
-		pthread_mutex_lock(&pool_mutex);	
 		pool_index = 0;
-		pthread_mutex_unlock(&pool_mutex);	
-
-		if (!running)
-			exit(0);
 
 		/* Rate the population */
 		for(i=0; i<NT; i++)
@@ -189,9 +190,6 @@ void opt_run()
 		
 		for(i=0; i<NT; i++)
 			pthread_join(t_eval[i], NULL);			
-
-		if (!running)
-			exit(0);
 
 
 		/* print stats */
@@ -206,13 +204,13 @@ void opt_run()
 				a = random() % POP_SIZE;
 				b = random() % POP_SIZE;
 				n1 = (pool[a].rate > pool[b].rate) ? a:b;
-			} while(pool[n1].flags == INVALID);
+			} while(pool[n1].flags & INVALID);
 			
 			do {
 				a = random() % POP_SIZE;
 				b = random() % POP_SIZE;
 				n2 = (pool[a].rate > pool[b].rate) ? a:b;
-			} while(pool[n2].flags == INVALID);
+			} while(pool[n2].flags & INVALID);
 
 			crossover(pool[n1].string, pool[n2].string, tpool[i].string);
 			tpool[i].flags = 0;
@@ -240,7 +238,9 @@ void opt_run()
 		}
 
 		for(i=0; i<MUTAT; i++) {
-			n1 = random() % POP_SIZE;
+			do
+				n1 = random() % POP_SIZE;
+			while(pool[n1].flags & INVALID);
 			if (mutate(pool[n1].string))
 				pool[i].flags &= ~RATED;	
 		}
@@ -248,6 +248,13 @@ void opt_run()
 		printf("%d) t= %lu   delta= %lu best rate: %lf\n", 
 			generation, now.tv_sec - t_start.tv_sec, 
 				now.tv_sec - prev_t.tv_sec, bst);
+		fprintf(plog,"%d) t= %lu   delta= %lu best rate: %lf\n", 
+			generation, now.tv_sec - t_start.tv_sec, 
+				now.tv_sec - prev_t.tv_sec, bst);
 		prev_t = now;
+
+		if (!running)
+			exit(0);
+
 	}
 }
