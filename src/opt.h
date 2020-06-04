@@ -1,5 +1,6 @@
 #ifndef opt_h
 #define opt_h
+#include <errno.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -25,6 +26,7 @@
 #define MUTAT        ((PERC_MUTAT*POP_SIZE)/100)
 #define RATED		     0x01
 #define SELECTED	     0x02
+#define INVALID              0x04
 
 struct tctx {
     struct gene* seg;
@@ -33,7 +35,7 @@ struct tctx {
     double time_per_eval;
 };
 
-extern double eval(char *s, struct tctx*);
+extern double eval(struct tctx*);
 extern FILE *testfile;
 extern char *testname;
 extern int running;

@@ -72,19 +72,21 @@ void makeinst(char *s, char* fp, int out)
 
 }
 
-double eval(char *s, struct tctx* p)
+double eval(struct tctx* p)
 {
 	int testfd;
 	int pid;
 
+	char* s = p->seg->string;
 	char buf[256], *bp = buf;
 	char tempfname[] = "./tempXXXXXX";
+	char* prog[2];
 	int com[2];
 	int rd;
+	int retries;
+	double result;
 
-	// fprintf(stderr, "T[%d] about to lock p1\n", p->tnum);
 	pthread_mutex_lock(&eval_mutex);
-	// fprintf(stderr, "T[%d] acquired lock p1\n", p->tnum);
 
 	if (pipe(com)) {
 		fprintf(stderr, "cannot open pipe for reading\n");
@@ -114,12 +116,18 @@ double eval(char *s, struct tctx* p)
 		// fprintf(stderr, "start\n");
 		dup2(com[1], STDOUT_FILENO);
 
-		while (system(tempfname)) {
-			fprintf(stderr, "could not execute %s\n",
-				tempfname);
-		}
-		// fprintf(stderr, "done\n");
-		exit(0);
+		prog[0] = tempfname;
+		prog[1] = NULL;
+
+		retries = 0;
+		do {
+			execve(prog[0], prog, NULL);
+			rd = errno;
+			sleep(1);
+			retries++;
+		} while (rd==ETXTBSY && retries<4);
+		perror(tempfname);
+		exit(1);
 	}
 
 	pthread_mutex_lock(&eval_mutex);
@@ -141,9 +149,6 @@ double eval(char *s, struct tctx* p)
 	*bp = '\0';
 
 	pthread_mutex_lock(&eval_mutex);
-	if (!running)
-		fprintf(stderr, "T[%d] actions not running No.1\n", p->tnum);
-
 	close(com[0]);
 
 	if (remove(tempfname)) {
@@ -152,19 +157,20 @@ double eval(char *s, struct tctx* p)
 		exit(1);
 	}
 
-	if (!running)
-		fprintf(stderr, "t[%d] actions not running no.2\n", p->tnum);
-	
-	// fprintf(stderr, "T[%d] after remove(tmpfname)\n", p->tnum);
 
 	if (!running) {
-		fprintf(stderr, "T[%d] exiting here\n", p->tnum);
 		pthread_mutex_unlock(&eval_mutex);
 		pthread_exit(0);
 	}
 
 	pthread_mutex_unlock(&eval_mutex);
-	// fprintf(stderr, "T[%d] released lock p2\n", p->tnum);
-	return atof(buf);
+
+	result = strtod(buf, &bp);
+	if (bp==NULL)
+		p->seg->flags = INVALID;
+	else
+		p->seg->flags = RATED;
+
+	return result;
 }
 

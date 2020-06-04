@@ -87,7 +87,6 @@ void* eval_seg(void* ctxp)
 	int pbest;
 	int evals = 0;
 	struct tctx* thread = (struct tctx*)ctxp;
-	struct gene* p = thread->seg;
 	struct timeval start, end;
 	sigset_t set;
 
@@ -99,10 +98,10 @@ void* eval_seg(void* ctxp)
 
 	while(1) {
 
+		/* advance index */
 		pthread_mutex_lock(&pool_mutex);
-		// fprintf(stderr, "T[%d] index=%d\n", thread->tnum, pool_index);
 		if (pool_index>=POP_SIZE) {
-		
+			/* Exit task for this thread */
 			fprintf(stderr, "T[%d] exiting\n", thread->tnum);
 			gettimeofday(&end, NULL);
 			thread->time_per_eval = 
@@ -112,30 +111,34 @@ void* eval_seg(void* ctxp)
 			pthread_exit(NULL);
 		}
 		i = pool_index;
+		fprintf(stderr, "index=%d\n", pool_index);
 		pool_index++;
 		pthread_mutex_unlock(&pool_mutex);
-			
-		p[i].flags &= ~SELECTED;
-		if (!(p[i].flags & RATED)) {
-			p[i].flags |= RATED;
-			p[i].rate = eval(p[i].string, (struct tctx*)ctxp);
+		
+		/* evaluate the string */
+		if (!(pool[i].flags & RATED)) {
+			thread->seg = &pool[i];
+			pool[i].rate = eval(thread);
 			evals++;
 		}
 
-		pthread_mutex_lock(&eval_mutex);
-		if (bst < (p[i].rate)) {
+		/* check if better then best */
+		pthread_mutex_lock(&best_mutex);
+		if (bst < (pool[i].rate) && !(pool[i].flags & INVALID)) {
+			pthread_mutex_lock(&eval_mutex);
 			pbest = open("opt.best", O_WRONLY | O_CREAT, 0600);
 			if (pbest<0) {
 				perror(NULL);
 				fprintf(stderr, "could not open opt.best\n");
 				exit(1);
 			}
-			makeinst(p[i].string, script, pbest);
-			bst = p[i].rate;
+			makeinst(pool[i].string, script, pbest);
+			bst = pool[i].rate;
 			fprintf(stderr, "new best = %lf\n", bst);
 			close(pbest);
+			pthread_mutex_unlock(&eval_mutex);
 		}
-		pthread_mutex_unlock(&eval_mutex);	
+		pthread_mutex_unlock(&best_mutex);
 
 	}
 	return ctxp;
@@ -199,12 +202,17 @@ void opt_run()
 
 		/* calcuate crossovers */
 		for(i=0; i<RECOMB; i++) {
-			a = random() % POP_SIZE;
-			b = random() % POP_SIZE;
-			n1 = (pool[a].rate > pool[b].rate) ? a:b;
-			a = random() % POP_SIZE;
-			b = random() % POP_SIZE;
-			n2 = (pool[a].rate > pool[b].rate) ? a:b;			
+			do {
+				a = random() % POP_SIZE;
+				b = random() % POP_SIZE;
+				n1 = (pool[a].rate > pool[b].rate) ? a:b;
+			} while(pool[n1].flags == INVALID);
+			
+			do {
+				a = random() % POP_SIZE;
+				b = random() % POP_SIZE;
+				n2 = (pool[a].rate > pool[b].rate) ? a:b;
+			} while(pool[n2].flags == INVALID);
 
 			crossover(pool[n1].string, pool[n2].string, tpool[i].string);
 			tpool[i].flags = 0;
