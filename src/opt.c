@@ -131,7 +131,7 @@ void* eval_seg(void* ctxp)
 		pthread_mutex_unlock(&pool_mutex);
 		
 		/* evaluate the string */
-		if (!(pool[i].flags & RATED)) {
+		if (!(pool[i].flags & (RATED|INVALID))) {
 			thread->seg = &pool[i];
 			pool[i].rate = eval(thread);
 			evals++;
@@ -232,10 +232,17 @@ void opt_run()
 			tpool[i].flags = 0;
 		}
 
-		// print_pop();
-
 		/* update the population with crossovers */
-		for(i=0; i<RECOMB; i++) {
+		/* select INVALID first */
+		j = 0;
+		for(i=0; i<POP_SIZE; i++)
+			if (pool[i].flags & INVALID) {
+				pool[i].flags |= SELECTED;
+				j++;
+			}
+
+		/* select the remaining */
+		for(i=0; i<RECOMB-j; i++) {
 			do {
 				a = random() % POP_SIZE;
 				b = random() % POP_SIZE;
@@ -244,8 +251,6 @@ void opt_run()
 			pool[n1].flags |= SELECTED;
 		}
 
-
-		// print_pop();
 
 		j = 0;
 		for(i=0; i<POP_SIZE; i++) {
@@ -264,8 +269,6 @@ void opt_run()
 			if (mutate(pool[n1].string))
 				pool[i].flags &= ~RATED;	
 		}
-
-		// print_pop();
 
 		gettimeofday(&now, NULL);
 		printf("%d) t= %lu   delta= %lu best rate: %lf\n", 
