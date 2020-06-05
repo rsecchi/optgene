@@ -22,6 +22,22 @@ void print_gene(char* s)
 			(uint32_t)(s[i] & ((1 << (tmpl[i])) - 1)));
 }
 
+void print_pop()
+{
+	int i;
+	fprintf(stderr, "\n\n[GEN=%d]=============\n", generation);
+	for(i=0; i<POP_SIZE; i++)
+	{
+		fprintf(stderr, "%4d: ",i);
+		print_gene(pool[i].string);
+		fprintf(stderr, "  [%c][%c][%c]  >> %lf\n", 
+			(pool[i].flags & RATED)?'R':' ',
+			(pool[i].flags & INVALID)?'I':' ',
+			(pool[i].flags & SELECTED)?'S':' ',
+			pool[i].rate);
+	}
+}
+
 /* create a random gene from template */
 void randomize(char* s)
 {
@@ -125,7 +141,7 @@ void* eval_seg(void* ctxp)
 		pthread_mutex_lock(&best_mutex);
 		if (bst < (pool[i].rate) && !(pool[i].flags & INVALID)) {
 			pthread_mutex_lock(&eval_mutex);
-			pbest = open("opt.best", O_WRONLY | O_CREAT, 0600);
+			pbest = creat("opt.best", 0600);
 			if (pbest<0) {
 				perror(NULL);
 				fprintf(stderr, "could not open opt.best\n");
@@ -216,6 +232,8 @@ void opt_run()
 			tpool[i].flags = 0;
 		}
 
+		// print_pop();
+
 		/* update the population with crossovers */
 		for(i=0; i<RECOMB; i++) {
 			do {
@@ -226,6 +244,8 @@ void opt_run()
 			pool[n1].flags |= SELECTED;
 		}
 
+
+		// print_pop();
 
 		j = 0;
 		for(i=0; i<POP_SIZE; i++) {
@@ -244,6 +264,9 @@ void opt_run()
 			if (mutate(pool[n1].string))
 				pool[i].flags &= ~RATED;	
 		}
+
+		// print_pop();
+
 		gettimeofday(&now, NULL);
 		printf("%d) t= %lu   delta= %lu best rate: %lf\n", 
 			generation, now.tv_sec - t_start.tv_sec, 

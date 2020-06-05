@@ -4,7 +4,7 @@ OUT=opt
 SRC= src/main.c src/opt.c src/proc.c
 OBJ= $(SRC:.c=.o)
 
-CFLAGS= -g -O0 -Wall 
+CFLAGS= -g -Wall 
 LDFLAGS= -g -lpthread -lrt
 
 $(OUT): $(OBJ)

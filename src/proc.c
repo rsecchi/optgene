@@ -76,6 +76,7 @@ double eval(struct tctx* p)
 {
 	int testfd;
 	int pid;
+	int wstatus;
 
 	char* s = p->seg->string;
 	char buf[256], *bp = buf;
@@ -85,10 +86,11 @@ double eval(struct tctx* p)
 	int rd;
 	int retries;
 	double result;
+	int timeout;
 
 	pthread_mutex_lock(&eval_mutex);
 
-	if (pipe(com)) {
+	if (pipe2(com, O_NONBLOCK)) {
 		fprintf(stderr, "cannot open pipe for reading\n");
 		exit(1);
 	}
@@ -134,12 +136,26 @@ double eval(struct tctx* p)
 	close(com[1]);
 	pthread_mutex_unlock(&eval_mutex);
 
+	timeout = 0;
 	/* reading from pipe */
 	while ((rd = read(com[0], bp, 255)) != 0) {
+		if (rd<0 && errno==EAGAIN) {
+			timeout++;
+			if (timeout == TIMEOUT){
+				fprintf(stderr, "TIMEOUT\n");
+				kill(pid, SIGTERM);
+				wait(&wstatus);
+				break;
+			}
+			sleep(1);
+			continue;
+		}
+
 		if (rd < 0) {
-			fprintf(stderr, "error reading from pipe\n");
+			perror("error reading from pipe: ");
 			exit(1);
 		}
+	
 		bp += rd;
 		if (bp - buf > 255) {
 			buf[255] = '\0';
@@ -152,11 +168,9 @@ double eval(struct tctx* p)
 	close(com[0]);
 
 	if (remove(tempfname)) {
-		fprintf(stderr, "could not remove %s\n", 
-			tempfname);
+		perror("could not remove temp file"); 
 		exit(1);
 	}
-
 
 	if (!running) {
 		pthread_mutex_unlock(&eval_mutex);
@@ -166,10 +180,9 @@ double eval(struct tctx* p)
 	pthread_mutex_unlock(&eval_mutex);
 
 	result = strtod(buf, &bp);
-	if (bp==NULL)
-		p->seg->flags = INVALID;
-	else
-		p->seg->flags = RATED;
+
+	p->seg->flags = (bp==buf) ? INVALID : RATED; 
+
 
 	return result;
 }

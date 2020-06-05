@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 
 	cmdline(argc, argv);
 	signal(SIGINT, end_opt);
+	signal(SIGCHLD, SIG_IGN);
 
 	gettimeofday(&randtime, NULL);
 	srand(randtime.tv_usec);

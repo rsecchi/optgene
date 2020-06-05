@@ -1,5 +1,7 @@
 #ifndef opt_h
 #define opt_h
+
+#define _GNU_SOURCE
 #include <errno.h>
 #include <signal.h>
 #include <stdint.h>
@@ -21,6 +23,7 @@
 #define PERC_MUTAT         10
 #define NT                  4
 
+#define TIMEOUT             5
 #define SEGSIZE       (POP_SIZE/NT)
 #define RECOMB       ((PERC_RECOMB*POP_SIZE)/100)
 #define MUTAT        ((PERC_MUTAT*POP_SIZE)/100)
